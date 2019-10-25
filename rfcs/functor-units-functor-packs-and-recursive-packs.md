@@ -392,8 +392,25 @@ let () = L.Bar.run (L.Foo.mk [2; 3; 4])
 
 ## Drawbacks
 
-- This builds on the `-pack` mechanism, which has somewhat gone out
-  of fashion.
+- This builds on the `-pack` mechanism, which has some drawbacks:
+
+  1. Touching any component triggers recompilation of all clients of
+     the packed module.
+
+  2. Linking part of a packed module forces linking the whole packed
+     module.
+
+  For these reasons most existing uses of `-pack` have been replaced
+  by approaches based on module aliases.
+
+  These issues are probably unavoidable for the recursive use case
+  anyway since the sub-modules are mutually recursive.
+
+  For the functor use case these issues might be avoidable with some
+  other approach. Although it couldn't be based on module aliases,
+  since those approaches rely on being able to refer to *the* module
+  `M` but thanks to side-effects you cannot talk about *the* module
+  `F(X)` only *a* module `F(X)`.
 
 - Recursive modules are basically still an experimental feature. There
   is some consensus that their current form should be replaced by
