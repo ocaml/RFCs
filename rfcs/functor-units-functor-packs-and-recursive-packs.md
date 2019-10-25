@@ -410,6 +410,6 @@ let () = L.Bar.run (L.Foo.mk [2; 3; 4])
 - Only providing some of the sub-proposals -- the functor and recursion parts
   are fairly independent and could be considered separately.
 
-- Some use cases of recursive packs could be addressed by RFC #1. If
+- Some use cases of recursive packs could be addressed by RFC #2. If
   the mutual recursion is all at the type level then that should be
   sufficient.
