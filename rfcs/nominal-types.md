@@ -81,7 +81,7 @@ This gives us the following forms of nominal types, both in interfaces and imple
 ```ocaml
 type 'a u [@@nominal]
 type 'a t [@@nominal "M.t"]
-type 'a v = A of t1 | B of t2 [@@nominal M.v"]
+type 'a v = A of t1 | B of t2 [@@nominal "M.v"]
 type 'a v = 'a Z.t = A of t1 | B of t2 [@@nominal "M.v"]
 type 'a r = {f1:t2; f2:t2} [@@nominal "M.r"]
 type 'a r = 'a Z.u = {f1:t2; f2:t2} [@@nominal "M.r"]
@@ -94,7 +94,7 @@ Two relations are important for nominal types: (module level) subtyping, and com
 
 ### Subtyping
 Subtyping is reflexitive and transitive, and include the following rules:
-```ocaml
+```
 type 'a u [@@nominal] <: type 'a u
 type 'a u [@@nominal "s"] <: type 'a u [@@nominal]
 type 'a u = 'a t <: type 'a u [@@nominal "s"] if type 'a t <: type 'a u [@@nominal "s"]
@@ -107,10 +107,10 @@ type 'a v = 'a w = A [@@nominal "s"] <: type 'a v = A [@@nominal s]
 Note that in all cases arity and parameter order must be preserved.
 
 In particular, note that the following are _not_ allowed:
-```ocaml
-type 'a u <: type 'a u [@@nominal]  (* introduction of [@@nominal] *)
+```
+type 'a u <: type 'a u [@@nominal]                     (* introduction of [@@nominal] *)
 type 'a u [@@nominal "s"] <: type 'a u [@@nominal "t"] (* change of name *)
-type 'a v = A [@@nominal "s"] <: type 'a v = A
+type 'a v = A [@@nominal "s"] <: type 'a v = A         (* forget name of datatype *)
 ```
 
 ### Compatibility
@@ -149,7 +149,7 @@ module M : sig type +'a t [@@nominal "M.t"] end =
 type _ ty = M : 'a ty -> 'a M.t ty;;
 ```
 
-###Incompatibility
+### Incompatibility
 ```ocaml
 module M : sig type +'a t [@@nominal "M.t"] val create : 'a list -> 'a t end = struct
   type 'a t = Nil | Cons of 'a * 'a t [@@nominal "M.t"]
@@ -159,7 +159,7 @@ type _ exp = M : 'a list -> 'a M.t exp | Int : int -> int exp
 let eval_int : int exp -> int = function Int x -> x;;
 ```
 
-###Index types
+### Index types
 ```ocaml
 type zero [@@nominal "zero"]
 type 'n succ [@@nominal "succ"]
@@ -169,7 +169,7 @@ type ('a,'n) vec =
 let head : ('a,_ succ) vec -> 'a = function Cons (h,t) -> h
 ```
 
-###Functors
+### Functors
 A functor can require that one of its arguments is nominal:
 ```ocaml
 type (_,_) eq = Eq : ('a,'a) eq
@@ -186,18 +186,18 @@ module type S = sig
   val create : elt list -> t
 end
 module Set(X : sig type t end) : sig
-  type 'a t1 constraint 'a = X.t [@@nominal "Make.t"]
+  type 'a t1 constraint 'a = X.t [@@nominal "Set.t"]
   include S with type elt = X.t and type t = X.t t1
 end = struct
   type elt = X.t
-  type 'a t1 = {elems: 'a list} constraint 'a = elt [@@nominal "Make.t"]
+  type 'a t1 = {elems: 'a list} constraint 'a = elt [@@nominal "Set.t"]
   type t = elt t1
   let create l = {elems=l}
 end;;
 module Set :
   functor (X : sig type t end) ->
     sig
-      type 'a t1 constraint 'a = X.t [@@nominal "Make.t"]
+      type 'a t1 constraint 'a = X.t [@@nominal "Set.t"]
       type elt = X.t
       type t = X.t t1
       val create : elt list -> t
