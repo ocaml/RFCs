@@ -16,7 +16,7 @@ This is useful for two things:
 * Allowing to use (parametric) abstract index types in GADT definitions. Currently such definitions are rejected as non-injective.
 * Making the the exhaustiveness check more precise, bit having a way to deduce that some abstract types are incompatible with other types. Currently this is only allowed for predefined types (hard-coded in the compiler) and types defined in the current module (arguably a bad design choice).
 
-An experimental implementation is available as PR [#9042]https://github.com/ocaml/ocaml/pull/9042.
+An experimental implementation is available as PR [#9042](https://github.com/ocaml/ocaml/pull/9042).
 
 ## Motivation
 
