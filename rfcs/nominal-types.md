@@ -93,7 +93,7 @@ While it is allowed to annotate non-abstract types with just `[@@nominal]`, this
 Two relations are important for nominal types: (module level) subtyping, and compatibility.
 
 ### Subtyping
-Subtyping is reflexitive and transitive, and include the following rules:
+Subtyping is reflexitive and transitive, and includes the following rules:
 ```
 type 'a u [@@nominal] <: type 'a u
 type 'a u [@@nominal "s"] <: type 'a u [@@nominal]
@@ -142,7 +142,7 @@ type 'a array [@@nominal "array"]
 
 ## Examples
 
-###Injectivity
+### Injectivity
 ```ocaml
 module M : sig type +'a t [@@nominal "M.t"] end =
   struct type 'a t = Nil | Cons of 'a * 'a t [@@nominal "M.t"] end
