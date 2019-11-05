@@ -173,8 +173,8 @@ let head : ('a,_ succ) vec -> 'a = function Cons (h,t) -> h
 A functor can require that one of its arguments is nominal:
 ```ocaml
 type (_,_) eq = Eq : ('a,'a) eq
-module F(X : sig type 'a t [@@nominal]) = struct
-  type _ exp = Int : int | T : 'a exp -> 'a X.t exp
+module F(X : sig type 'a t [@@nominal] end) = struct
+  type _ exp = Int : int exp | T : 'a exp -> 'a X.t exp
 end
 ```
 
