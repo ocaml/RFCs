@@ -219,4 +219,3 @@ let f : (Set(Int).t,Set(Bool).t) eq option -> int = fun None -> 1;;
 ## Implementation
 
 An experimental implementation is available as PR [#9042](https://github.com/ocaml/ocaml/pull/9042).
-Currently the syntax is `[@@unique "s"]` for `[@@nominal "s"]`, and `[@@nominal]` is not implemented (`[@@unique]` has a different meaning).
