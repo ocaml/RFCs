@@ -9,7 +9,7 @@ This RFC proposes to solve both problems by allowing one to mark some abstract t
 type 'a u [@@nominal]
 type 'a t [@@nominal "M.t"]
 ```
-Here `u` is injective, and `t` is both injective and incompatible with all nominal types whose name is not `"M.t"`. (But not the converse, i.e. two types with the same name `"M.t"` not be equal.)
+Here `u` is injective, and `t` is both injective and incompatible with all nominal types whose name is not `"M.t"`. (But not the converse, i.e. two types with the same name `"M.t"` need not be equal.)
 The name _nominal_ comes from the fact these types behave like nominal types, which in ocaml stands from variant and record types.
 
 This is useful for two things:
