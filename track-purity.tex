@@ -1,0 +1,181 @@
+\documentclass[a4paper]{article}
+\usepackage{fullpage}
+\usepackage{hyperref}
+\usepackage{alltt}
+
+\title{Purity inference}
+\author{Jacques Garrigue}
+
+\let\th\vdash
+\let\E\Sigma
+\let\G\Gamma
+\let\ra\rightarrow
+\let\tv\alpha
+\let\t\tau
+\let\s\sigma
+\def\p{\mathsf{p}}
+\def\i{\mathsf{i}}
+\newcommand\lfrac[2]{\frac{#1\hfill}{#2\hfill}}
+\newcommand\mlet[1]{\textsf{let}~#1~\textsf{in}~}
+\newcommand\mletrec[1]{\textsf{let\,rec}~#1~\textsf{in}~}
+\newcommand\mfun[1]{\textsf{fun}~#1 \ra}
+\let\type\textit
+\newcommand\cmt[1]{\hfill{(* #1 *)}}
+
+\begin{document}
+\maketitle
+
+The value restriction, even in its relaxed form, makes us lose
+polymorphism even in cases where all functions are pure.
+This is especially galling for combinator libraries, where code is
+built through function applications.
+
+Can we do better than that?
+The value restriction is only a weakened form of the original
+strong/weak type variable distinction present in Standard ML 90.
+It is a radical one: we only keep weak variables, deeming strong ones
+not modular enough.
+
+Reintroducing strong variables would certainly be theoretically be
+fine, but there are practical reasons for their demotion.
+Here we will argue for a coarser grain approach: distinguish between
+pure and impure bindings in the environment.
+Our soundness criterion is as follows: a binding can be marked as pure
+if all its polymorphic type variables would be strong using the
+original SML 90 weak/strong discipline.
+This also shows the limitation of this approach: while SML 90 allowed
+mixing strong and weak type variables in the same polymorphic type, we
+allow only one category.
+
+\[ s ::= \p \mid \i
+\hspace{8ex}
+\p \land s = s
+\hspace{8ex}
+\i \land s = \i
+\]
+
+\[
+\E \th x : s  \quad (x:s)\in E
+\hspace{8ex}
+\lfrac{\E, x : \p \th M : s}
+     {\E \th \mfun x M : s}
+\hspace{8ex}
+\lfrac{\E \th M_1 : s_1 \quad \E \th M_2 : s_2}
+{\E \th M_1 \, M_2 : s_1 \land s_2}
+\]
+
+\[
+\lfrac{\E \th M_1 : s_1 \quad \dots \quad \E \th M_n : s_n}
+{\E \th (M_1, \dots, M_n) : s_1 \land \dots \land s_n}
+\hspace{8ex}
+\lfrac{\E \th M_1 : s_1 \quad \E \th M_2 : s_2}
+{\E \th (M_1 ; M_2) : s_2}
+\]
+
+\[
+\lfrac{\E \th M_1 : s_1 \quad \E, x : s_1 \th M_2 : s_2}
+{\E \th \mlet{x=M_1} M_2 : s_2}
+\hspace{8ex}
+\lfrac{\E, x : \p \th M_1 : s_1 \quad \E, x : s_1 \th M_2 : s_2}
+{\E \th \mletrec{x=M_1} M_2 : s_2}
+\]
+\[
+\lfrac{\E, x : \i \th M_1 : s_1 \quad \E, x : s_1 \th M_2 : s_2}
+{\E \th \mletrec{x:\forall\tv.\sigma=M_1} M_2 : s_2}
+\hspace{8ex}
+\lfrac{\E \th r : s_1 \quad \th_{\sf lab} l : s_2}
+{\E \th r.l : s_1 \land s_2}
+\]
+
+\[
+\th_{\sf lab} l :
+\left\{\begin{array}{ll}
+\i & \mbox{when $l$ is a polymorphic field} \\
+\p & \mbox{otherwise} \\
+\end{array}\right.
+\quad
+\begin{array}{l}
+  \mbox{Polymorphic fields inside patterns} \\
+  \mbox{also make the expression impure.}
+\end{array}
+\]
+
+\[
+\lfrac{\E \th M_i : s_i \quad \th_{\sf mut} l_i : s'_i}
+{\E \th \{l_1 = M_1; \dots; l_n = M_n\} : \bigwedge_i s_i \land s'_i}
+\hspace{5ex}
+\th_{\sf mut} l :
+\left\{\begin{array}{ll}
+\i & \mbox{when $l$ is a mutable field} \\
+\p & \mbox{otherwise} \\
+\end{array}\right.
+\]
+
+\[
+\lfrac{\G;\E \th M_1 : \t_1  \quad \E \th M_1 : \p \quad
+  \G, x : \forall\vec\tv.\t_1; \E,x : \p \th M_2 : \t_2}
+{\G;\E \th \mlet{x = M_1} M_2 : \t_2}~ \vec\tv \cap \textsf{fv}(\G) = \emptyset
+\]
+
+This solution is implemented by my {\tt purity-attribute} branch:
+\url{https://github.com/garrigue/ocaml/tree/purity-attribute}.
+Typed examples are at:
+\url{https://github.com/garrigue/ocaml/blob/purity-attribute/testsuite/tests/typing-poly/purity.ml}.
+
+One limitation of the current implementation is that simultaneous
+let-definitions (using {\tt and}) are type as though they were tuples
+in the above rules.
+
+\paragraph{Examples}
+\begin{alltt}
+(* Basic *)
+
+let some x = Some x;; \cmt{constructor functions can be pure}
+\type{val some : 'a -> 'a option [@@pure]}
+let a = some (fun x -> x);; \cmt{pure applications can be generalized}
+\type{val a : ('a -> 'a) option [@@pure]}
+
+let r = ref;; \cmt{impure things are not pure!}
+\type{val r : 'a -> 'a ref}
+let c = r (fun x -> x);; \cmt{relaxed value restriction still applies}
+\type{val c : ('_weak1 -> '_weak1) ref}
+let c' = {contents=fun x -> x};;
+\type{val c' : ('_weak2 -> '_weak2) ref}
+
+(* Modules *)
+
+module type T = sig val some : 'a -> 'a option [@@pure] end;;
+
+module M : T = struct let some x = Some x end;;
+\type{module M : T}
+
+module M' : T = struct let some x = let r = ref x in Some !r end;;
+\type{Error: Signature mismatch:
+       Values do not match:
+         val some : 'a -> 'a option
+       is not included in
+         val some : 'a -> 'a option [@@pure]}
+
+(* Beware of polymorphism *)
+type mkref = \{mkref: 'a. 'a -> 'a ref\};; \cmt{polymorphic field}
+
+let f x = let r = x.mkref [] in fun y -> r := [y]; List.hd !r;;
+\type{val f : mkref -> 'a -> 'a} \cmt{impure field access}
+
+let f \{mkref\} = let r = mkref [] in fun y -> r := [y]; List.hd !r;;
+\type{val f : mkref -> 'a -> 'a} \cmt{impure pattern}
+
+(* Beware of polymorphic recursion *)
+let rec f x = let r = mkref x [] in fun y -> r := [y]; List.hd !r
+and mkref : 'a. mkref -> 'a -> 'a ref = fun x -> x.mkref;;
+\type{val f : mkref -> 'a -> 'a} \cmt{call to mkref is impure}
+\type{val mkref : mkref -> 'a -> 'a ref}
+
+let rec id : 'a. 'a -> 'a = fun x -> id x;;
+\type{val id : 'a -> 'a} \cmt{impure due to polymorphic recursion}
+
+let rec id : 'a. 'a -> 'a = fun x -> x;;
+\type{val id : 'a -> 'a [@@pure]} \cmt{pure since no recursive call}
+\end{alltt}
+
+\end{document}
