@@ -139,7 +139,7 @@ let r = ref;; \cmt{impure things are not pure!}
 \type{val r : 'a -> 'a ref}
 let c = r (fun x -> x);; \cmt{relaxed value restriction still applies}
 \type{val c : ('_weak1 -> '_weak1) ref}
-let c' = {contents=fun x -> x};;
+let c' = \{contents=fun x -> x\};;
 \type{val c' : ('_weak2 -> '_weak2) ref}
 
 (* Modules *)
