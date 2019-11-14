@@ -1,16 +1,18 @@
 # OCaml RFCs
 
 This repository is for proposals to change the OCaml language
-or the internals of its compiler. It currently has a single folder:
+or the internals of its compiler.
 
-- rfcs
+**It is for proposals by people who actually intend to implement the
+proposed changes. Feature requests from users of the language should
+instead by made as issues on [ocaml/ocaml](https://github.com/ocaml/ocaml)**.
 
-## RFCs
+## Making an RFC
 
-The rfcs folder is for accepted proposals for changes to the
-language. Files should be created in this directory via pull requests,
-and the merging of those pull requests should only happen once there
-is consensus to accept the change in principle.
+RFCs are made by creating a pull request that adds a file to the
+`rfcs` folder. The `rfcs` folder contains accepted proposals for
+changes to the language. The pull request will only be merged
+once there is consensus to accept the change in principle.
 
 We'll adjust and adapt the process as we go, but as a starting point
 RFCs should provide:
@@ -21,6 +23,28 @@ RFCs should provide:
  - Drawbacks of the change and alternatives to the change
  - Unresolved questions
 
-Then we can discuss the proposal in the comments of the pull request
-and, once consensus is reached, either merge or close the pull
-request.
+## Discussing an RFC
+
+RFCs will be discussed in the comments of the pull request that
+proposes them. Authors should try to respond to queries and integrate
+feedback into the RFC document. Commenters should try to avoid
+unnecessary bike-shedding.
+
+## Merging an RFC
+
+Once those involved in discussing an RFC think that it is ready to be
+considered for approval they can nominate it for consideration at the
+next developers meeting. At that meeting a decision will be made to
+either:
+
+- Accept the proposal and merge the RFC
+
+- Reject the proposal and close the RFC
+
+- Request further changes/discussion on the RFC before reconsidering
+  at another meeting.
+
+Once an RFC has been accepted into the repository authors can begin
+implementing the proposal and be reasonably confident that a suitable
+implementation of the feature will be accepted upstream into the
+compiler.
