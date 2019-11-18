@@ -5,7 +5,7 @@ or the internals of its compiler.
 
 **It is for proposals by people who actually intend to implement the
 proposed changes. Feature requests from users of the language should
-instead by made as issues on [ocaml/ocaml](https://github.com/ocaml/ocaml)**.
+instead by made as issues on [ocaml/ocaml](https://github.com/ocaml/ocaml/issues)**.
 
 ## Making an RFC
 
