@@ -30,6 +30,10 @@ proposes them. Authors should try to respond to queries and integrate
 feedback into the RFC document. Commenters should try to avoid
 unnecessary bike-shedding.
 
+The OCaml development team will moderate these discussions. We may
+delete comments or close pull requests that we feel are not
+productive.
+
 ## Merging an RFC
 
 Once those involved in discussing an RFC think that it is ready to be
