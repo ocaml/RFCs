@@ -230,7 +230,8 @@ The following behaviours are added to `ocamlc`.
 * Compilation phase. `ocamlc -c -lib MYLIB src.ml`. The repeatable and
   ordered `-lib MYLIB` option resolves `MYLIB` in `OCAMLPATH` and adds
   its library directory to includes. Errors if `MYLIB` does not
-  resolve to an existing library.
+  resolve to an existing library. Type checking does not need
+  to access library archives.
 * Link phase. `ocamlc -o a.out -lib MYLIB`. The repeatable and ordered
   `-lib MYLIB` resolves `MYLIB` in `OCAMLPATH` and adds its `lib.cma`
   file to the link sequence. It then consults the `lib_requires` field
@@ -272,7 +273,8 @@ The following behaviours are added to `ocamlopt`
 * Compilation phase. `ocamlopt -c -lib MYLIB src.ml`. The repeatable and
   ordered `-lib MYLIB` option resolves `MYLIB` in `OCAMLPATH` and adds
   its library directory to includes. Errors if `MYLIB` does not
-  resolve to an existing library.
+  resolve to an existing library. Type checking does not need
+  to access library archives.
 * Link phase. `ocamlopt -o a.out -lib MYLIB`. The repeatable and
   ordered `-lib MYLIB` option resolves `MYLIB` in `OCAMLPATH` and adds its
   `lib.cmxa` file to the link sequence. It then consults the
@@ -476,6 +478,61 @@ Dune will transparently translate `.` to `/` in library names when
 reading older `dune` configuration files. This will ensure that newer
 projects use the new naming conventions without breaking the build of
 projects that haven't been updated in a while.
+
+
+## Unresolved issues 
+
+### Compilation phase includes
+
+At the moment the proposal indicates that during the compilation phase
+use of a library via `-lib LIB` simply adds `LIB`'s directory library
+to the includes for the compilation. The include directories of the
+libraries `LIB` depends on are not added. The reason is that doing the
+latter leads to dependency underspecification (see
+[here](https://github.com/ocaml/opam-repository/pull/13803) for a real
+example).
+
+The rationale is that if the library `L` does not make its usage of
+another library `LD` abstract and that it leaks in `L`'s interface
+then concretly the client of `L` also need to depend on `LD`.
+
+The problem of this approach is that this can lead to errors that are
+difficult to diagnose and that this notion seems to be currently ill
+defined.
+
+Here are two approaches that have been proposed to alleviate the problem: 
+
+1. Make `cmi` files self-contained by expanding type aliases, module 
+   aliases and module type aliases.
+2. Add a `--lib-hidden LIB` option that tells the compiler to also 
+   look into `LIB` for `cmis` but without directly exposing the 
+   declarations to the source files that are being compiled.
+   
+It is perceived that 1. will make the `cmi` files too large. The
+problem with 2. is that it breaks the idea that the compilation phase
+need not be aware of the dependencies of a library which are currently
+only stored in library archives.
+
+### Library names 
+
+The current proposal indicates library names are made of `/` separated
+segments instead of `.`. The latter being what `ocamlfind` *packages*
+use now.
+
+The advantage of using `.` is that it's compatible (e.g. in `#require`
+directive) with what people use in `ocamlfind` to specify *packages*
+(which are most of the time *libraries*) and what people currently
+write in `dune` files for specifying *library* names.
+
+One point that was made for not using `.` is to give a syntactic way
+to distinguish between library names and namespace names would those
+be introduced in the future. They idea is that one could use `-lib
+my/lib` to use the *library* `my/lib` and `-lib my.lib` to use the
+*library* `my/lib` and the namespace it defines. In the fist case a
+module `my/lib/M` is available in the sources as `M` and in the second
+case under the name `My.Lib.M`. This would provide a simple way to
+gradually introduce namespaces in code bases with little build system
+churn and simple user control.
 
 ## Supporting work
 
