@@ -7,7 +7,7 @@ definitions. One would sometimes prefer to have multiple modules, each
 exposing one type, perhaps in an abstract or private from (together
 with functions operating on that type).
 
-This RFC attempts to propose a pragmatic word-around for this
+This RFC attempts to propose a pragmatic work-around for this
 situation, taking inspiration from the widely used work-around for the
 similar problem in the core language (references to implement forward
 references to functions across compiltation units).
