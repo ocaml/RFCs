@@ -103,19 +103,22 @@ is concerned there's no connection between them except for the name
 prefix they share.
 
 The `OCAMLPATH` environment variable defines an ordered list of root
-directories in which library directories can be found. The *name* of a
-library is the relative path up to its root directory in `OCAMLPATH`.
+directories in which library directories can be found. The syntax of
+`OCAMLPATH` follows the platform convention for `PATH` like
+variables. This means they are colon `:` separated paths on POSIX
+platforms and semi-colon `;` separated paths on Windows
+platforms. Empty paths are allowed and discarded.
 
-Library names are restricted to use forward slashes '/' on all
-platforms (we are considering using `.` if we find out we do 
-not need to be able to distinguish between library names and the
-names of a future namespace proposal). Each path segment must be a 
-non-empty, uncapitalized OCaml compilation unit name, except for the `-` 
-character which is also allowed; even though this is not checked by the 
-compiler having segment names in the same directory that differ only by 
-their `_` and `-` characters *must not* be done (e.g. `dir/foo-bar` and
-`dir/foo_bar`). Note also that by definition, library names have no trailing
-slashes.
+The *name* of a library is the relative path up to its root directory
+in `OCAMLPATH` in which directory separators are substited by a `.` – for
+example the relative directory `foo/bar` becomes `foo.bar`.
+
+Each `.` separated segment (and thus directory name) must be a
+non-empty, uncapitalized OCaml compilation unit name, except for the
+`-` (U+002D) character which is also allowed. Even though this is not
+checked by the compiler, having segment names in the same directory
+that differ only by their `_` and `-` characters *must not* be done
+(e.g. `dir.foo-bar` and `dir.foo_bar`).
 
 If the same library name is available in more than one root directory
 of `OCAMLPATH` the leftmost one takes over -- the usual `PATH`
@@ -131,16 +134,16 @@ We get the following map between library directories and library names:
 
     Library directory                          Library name
     ----------------------------------------------------------------
-    /home/bactrian/opam/lib/ptime/clock/jsoo   ptime/clock/jsoo
-    /home/bactrian/opam/lib/re/emacs           re/emacs
+    /home/bactrian/opam/lib/ptime/clock/jsoo   ptime.clock.jsoo
+    /home/bactrian/opam/lib/re/emacs           re.emacs
     /usr/lib/ocaml/ocamlgraph                  ocamlgraph
-    /usr/lib/ocaml/ocaml/unix                  ocaml/unix
+    /usr/lib/ocaml/ocaml/unix                  ocaml.unix
     /usr/lib/ocaml/re/emacs                    N/A (shadowed)
 
-The syntax of `OCAMLPATH` follows the platform convention for `PATH`
-like variables. This means they are colon ':' separated paths on POSIX
-platforms and semi-colon ';' separated paths on Windows platforms. Empty
-paths are allowed and discarded.
+In what follows we use library names and the relative path it
+represents interchangeably. When a library name is used to denote a
+directory or file path we assume the `.` have been substituted with
+the platform specific directory separator.
 
 ## Library directory structure
 
@@ -154,16 +157,14 @@ to be used for linking. In other words we have for a library named
 
 Shared objects for C stubs usually get installed in their own
 dedicated directory `$(STUBLIBS)` (e.g. `$(opam var
-lib)/stublibs`). For that we mangle the name `MYLIB` by replacing
-potential directory separators with `_` and install the corresponding
-DLLs as:
+lib)/stublibs`). For use the library name `MYLIB` and install the
+corresponding DLLs as:
 
     $(STULIBS)/dllMYLIB.so
     
 ### Semantics and integrity constraints
 
-The following semantics and integrity constraints are assumed to hold
-on a library directory.
+The following constraints are assumed to hold on a library directory.
 
 1. If a `M.cmx` has no `cmi` then the module is private to the library.
 2. If a `M.cmi` has no `M.cmx` and no implementation in the archives then 
@@ -415,7 +416,6 @@ directories. Here's a proposal (can be bikesheded to wish though):
 * `ocaml/threads` has the `threads` library (unchanged).
 * `ocaml/unix` has the `unix` library. 
 
-
 ## `ocamlfind` support 
 
 The `ocamlfind` compatibility support works as follows. For a package
@@ -437,9 +437,8 @@ plugin(native) = "lib.cmxs"
 )
 ```
 
-In general given an OCaml library name `foo/bar` it is assumed to
-correspond to an `ocamlfind` package name `foo.bar` (i.e. replace
-directory separators by `.`).
+In general given an OCaml library name `foo.bar` it is assumed to
+correspond to an `ocamlfind` package name `foo.bar`.
 
 Since `ocamlfind` is in charge to put the recursive archive
 dependencies on the compiler cli at the link phase and that there may
@@ -471,14 +470,6 @@ libraries in Dune. On the plus side, it will simplify a bit the Dune
 code base.
 
 Starting from Dune 4, Dune will no longer generate `META` files.
-
-In newer `dune` configuration files, Dune will require library names
-to use `/` rather than `.`. However, to ensure backward compatibility
-Dune will transparently translate `.` to `/` in library names when
-reading older `dune` configuration files. This will ensure that newer
-projects use the new naming conventions without breaking the build of
-projects that haven't been updated in a while.
-
 
 ## Unresolved issues 
 
@@ -512,27 +503,6 @@ It is perceived that 1. will make the `cmi` files too large. The
 problem with 2. is that it breaks the idea that the compilation phase
 need not be aware of the dependencies of a library which are currently
 only stored in library archives.
-
-### Library names 
-
-The current proposal indicates library names are made of `/` separated
-segments instead of `.`. The latter being what `ocamlfind` *packages*
-use now.
-
-The advantage of using `.` is that it's compatible (e.g. in `#require`
-directive) with what people use in `ocamlfind` to specify *packages*
-(which are most of the time *libraries*) and what people currently
-write in `dune` files for specifying *library* names.
-
-One point that was made for not using `.` is to give a syntactic way
-to distinguish between library names and namespace names would those
-be introduced in the future. They idea is that one could use `-lib
-my/lib` to use the *library* `my/lib` and `-lib my.lib` to use the
-*library* `my/lib` and the namespace it defines. In the fist case a
-module `my/lib/M` is available in the sources as `M` and in the second
-case under the name `My.Lib.M`. This would provide a simple way to
-gradually introduce namespaces in code bases with little build system
-churn and simple user control.
 
 ## Supporting work
 
