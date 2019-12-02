@@ -186,7 +186,7 @@ following syntax:
 
     x.bar <- { x.bar with y = y' }
 
-It would be nice to also allow the syntax `x.bar.y <- y'`, although
+It would be nice to also allow the syntax `x.bar.#y <- y'`, although
 this is a little trickier to understand and implement, since it is
 `x.bar` rather than `x.bar.y` which is the mutable field.
 
@@ -392,11 +392,12 @@ In many cases, we know statically that the argument to option cannot
 be another option (e.g. `string option`, `int option`, `float
 option`...). In these cases, we can use *nullable types* instead. In a
 nullable type, the type parameter `'a` has layout `non_nullable`,
-which is a subtype of `value`. This means that it is represented as an
-ordinary OCaml value (a pointer or tagged integer), but that it cannot
-be another nullable type, so the equivalent of `t option option` gives
-a compile error. The nullable type then only needs one word of
-storage.
+which is a subtype of `value`. The `Some` constructor for nullable
+types is the identity (and in particular, does not allocate), while
+the `None` constructor is a constant null value.
+
+Since the equivalent of `t option option` gives a type error, no
+ambiguity is introduced by implementing `Some` as the identity.
 
 **Padding**
 
