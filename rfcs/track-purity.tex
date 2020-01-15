@@ -55,7 +55,7 @@ allow only one category.
 \]
 
 \[
-\E \th x : s  \quad (x:s)\in E
+\E \th x : s  \quad (x:s)\in \E
 \hspace{8ex}
 \lfrac{\E, x : \p \th M : s}
      {\E \th \mfun x M : s}
@@ -69,19 +69,19 @@ allow only one category.
 {\E \th (M_1, \dots, M_n) : s_1 \land \dots \land s_n}
 \hspace{8ex}
 \lfrac{\E \th M_1 : s_1 \quad \E \th M_2 : s_2}
-{\E \th (M_1 ; M_2) : s_2}
+{\E \th (M_1 ; M_2) : s_1 \land s_2}
 \]
 
 \[
 \lfrac{\E \th M_1 : s_1 \quad \E, x : s_1 \th M_2 : s_2}
-{\E \th \mlet{x=M_1} M_2 : s_2}
+{\E \th \mlet{x=M_1} M_2 : s_1 \land s_2}
 \hspace{8ex}
 \lfrac{\E, x : \p \th M_1 : s_1 \quad \E, x : s_1 \th M_2 : s_2}
-{\E \th \mletrec{x=M_1} M_2 : s_2}
+{\E \th \mletrec{x=M_1} M_2 : s_1 \land s_2}
 \]
 \[
 \lfrac{\E, x : \i \th M_1 : s_1 \quad \E, x : s_1 \th M_2 : s_2}
-{\E \th \mletrec{x:\forall\tv.\sigma=M_1} M_2 : s_2}
+{\E \th \mletrec{x:\forall\tv.\sigma=M_1} M_2 : s_1 \land s_2}
 \hspace{8ex}
 \lfrac{\E \th r : s_1 \quad \th_{\sf lab} l : s_2}
 {\E \th r.l : s_1 \land s_2}
@@ -118,12 +118,20 @@ allow only one category.
 \]
 
 This solution is implemented by my {\tt purity-attribute} branch:
-\url{https://github.com/garrigue/ocaml/tree/purity-attribute}.
+\url{https://github.com/garrigue/ocaml/tree/purity-attribute}, with a
+twist: the purity inference is not done on the raw syntax tree, but on
+a typing derivation. The rules $\E \th x : s$ and
+$\th_{\sf mut} l : s$ are modified so that $s = \p$ if the type of
+that specific instance of $x$ or of (the argument of) $l$ contains no
+type variables (which matches the SML 90 criterion, since this means
+that this contains no weak type variables). This avoids to track
+purity on ground types, but unfortunately this is not principal.
+
 Typed examples are at:
 \url{https://github.com/garrigue/ocaml/blob/purity-attribute/testsuite/tests/typing-poly/purity.ml}.
 
 One limitation of the current implementation is that simultaneous
-let-definitions (using {\tt and}) are type as though they were tuples
+let-definitions (using {\tt and}) are typed as though they were tuples
 in the above rules.
 
 \paragraph{Examples}
