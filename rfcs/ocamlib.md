@@ -504,7 +504,124 @@ problem with 2. is that it breaks the idea that the compilation phase
 need not be aware of the dependencies of a library which are currently
 only stored in library archives.
 
-## Supporting work
+
+## Implementation 
+
+Work on the proposal has started thanks to a grant of the 
+[OCaml software foundation](http://ocaml-sf.org/).
+
+### OCaml status
+
+Partial implementation for the compiler support is available
+[here](https://github.com/ocaml/ocaml/compare/trunk...dbuenzli:ll). For 
+interested reviewers, the patches are meant to be read individually and in 
+sequence.
+
+To create an opam switch with a compiler that has that support in you can use:
+```
+opam switch create ocaml-ll --empty 
+opam pin add ocaml-variants.4.11.0+ll git+https://github.com/dbuenzli/ocaml#ll
+```
+
+A bit of testing can be found in [this repository](https://github.com/dbuenzli/ocaml-lltest/)
+
+Here are a few notes about what is implemented and deviations of what
+was proposed above.
+
+1. `ocamlopt` and `ocamlc` support are done except for `-linkall` needed 
+  for the Dynlink API support.
+2. `ocamlmktop` support is done (the tool simply shells out to `ocamlc`).
+3. `ocamldebug` support is done.
+4. `ocamlmklib` support is done. Note that to compile a library say 
+  `mylib` for the library proposal one should use `-o mylib/lib` 
+  and `-oc mylib` or `-oc mylib_stubs` otherwise the static library and dll for 
+  stubs will by called `liblib.a` and `dlllib.so` which will likely 
+  lead to lookup problems.
+5. `ocamlobjinfo` support is done only for outputing the `lib_requires` field 
+   of `cma` and `cmxa` files.
+6. There is one thing that `ocamlfind` does that the proposal missed is
+   that during linking it also add library directories as `-I` includes
+   to OCaml. 
+
+   Most of the time this is has no effect; but may influence unprefixed, so
+   called "implicit" (see `Filename.is_implicit`) positional arguments
+   lookups. It is however important for libraries that have C stubs since 
+   this eventually it adds a `-L` to the C linker for the library directory and
+   allows to find the static C stub library archive usually recorded as 
+   `-lmylib_stub` arguments in cma (for `-custom`)and cmxa files. 
+   
+   It is a little bit unclear what to do here. Here are a few solutions:
+   
+   1. Do it the `ocamlfind` way and simply add the library directory of all
+      resolved libraries to the includes as is done during compilation.
+   2. Automatically add the directory of cm[x]as as `-L` arguments
+      to the C linker invocation.
+   3. There is somehow already partial support for point 2. under 
+      the form of the undocumented `$CAMLORIGIN` substitution 
+      for `-ccopt` arguments (rationale is [here](https://github.com/ocaml/ocaml/issues/6642)). This means that compiling a library with C stubs as follows, 
+      is sufficient to make bytecode -custom and native code linking work:
+      ```
+      ocamlmklib -o mylib/lib -oc mylib/mylib_stubs ... -ccopt '-L\$CAMLORIGIN'
+      ```
+      See for example [this test](https://github.com/dbuenzli/ocaml-lltest/blob/fba2fe1fc01fc57415a52879efb428b28067cd78/Makefile#L46-L53).
+      But it feels a bit silly to have to do it explicitely.
+      
+   It should be noted that 1. has an additional side effect is that 
+   it adds the library directory to the DLL path used to check 
+   DLLs during non-custom bytecode compilation. This means if your
+   library has not installed it's `dllmy_stub.so` in a directory 
+   accessible via `CAML_LD_LIBRARY_PATH` and you try to link a byte
+   code executable using it, it won't fail at compile time (however
+   the executable it will fail at runtime if the `.so` is not 
+   accessible).
+7. The proposal had both a `-lib` and `-lib-require` flag. The former was
+   meant to be used to denote library usage and the latter was meant to
+   be used for recording library usage in library archives. 
+
+   During implementation it became clear that these two usages are
+   mutually exclusive. So currently there is a single flag that is used
+   which is `-require` (whose name also corresponds to the toplevel
+   directive for loading libraries) and whose semantics depends on
+   context: during archive creation it means record library usage,
+   otherwise it means use the library.
+
+   Case could be made that both in `ocamlc -a` and `ocamlopt -shared
+   -a` you would like to have the difference since these two allow to
+   repack multiple cmas and cmxa into a single archive (note that
+   `ocamlopt -a` does not allow this). In this case we argue that if
+   you want to repack multiple archives you can simply lookup the cma
+   and cmxas yourself according to the library convention (it's not
+   something you'd do in the eco-system anyways as this would lead to
+   library lookup problems).
+8. Requires and ordering. To simplify the implementation we follow the way
+   ocamlfind does when `-packages` are specified. For compilation all 
+   `-require`d lib include directory are added at the end, in the given order. 
+   For linking all `-require`d library archive are put before the other 
+   files in the given order. This means:
+   ```
+     ocamlc -c -I inc0 -require lib1 -I inc2
+   = ocamlc -c -I inc0 -I inc2 -I /path/to/lib1
+   ≠ ocamlc -c -I inc0 -I /path/to/lib1 -I inc2
+
+     ocamlc -o a.out obj0.cmo -require lib1 obj1.cmo
+   = ocamlc -o a.out obj0.cmo /path/to/lib1/lib.cma obj1.cmo 
+   ≠ ocamlc -o a.out /path/to/lib1/lib.cma obj0.cmo obj1.cmo
+   ```
+
+   Initially we had intended to respect potential interleaving with
+   includes and compilation objects. This could be done but is likely
+   to be quite an invasive and delicate refactoring procedure for the
+   compiler.  The problem is that the cli parsing sets references in
+   `Clflags` which are used throughout the code base (with some
+   parts of the compiler actually mutating these flags...). And we
+   would need to merge what are currently separated references into a
+   single `[ I of dir |  File of string | Require of Lib.Name.t] list`
+   to be able to get the relative orderings in different contexts.
+9. It's unclear whether defaulting `OCAMLPATH` to `$(ocamlc -where)/..` is a 
+   good idea or not. 
+10. This implementation has no support for `OCAMLPARAM`. 
+
+## Old supporting work
 
 ### OCAMLPATH
 
