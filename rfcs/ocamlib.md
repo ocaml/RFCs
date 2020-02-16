@@ -301,9 +301,11 @@ The following behaviours are added to `ocamlobjinfo`.
 
 * The regular `ocamlobjinfo` output on `cmxa` and `cma` is extended
   according to the current format to output the new `lib_requires` field.
-* `ocamlobjinfo` is made to work on `cmxs` by using the support provided 
+* ~~`ocamlobjinfo` is made to work on `cmxs` by using the support provided 
   by `Dynlink` (if available) to output the plugin information rather 
-  than relying on the BDF library (see POC [here][cmxs-read-poc]) 
+  than relying on the BDF library (see POC [here][cmxs-read-poc])~~.
+  That approach is too fragile w.r.t. C bits that may live in the 
+  cmxs see discussion [here](https://github.com/ocaml/ocaml/issues/9306).
 * A new `-lib-requires` flag is added that extracts the new `lib_requires`
   from `cma` and `cmxa` and `dyn_requires` from `cmxs` files. According
   the following line based format: 
@@ -315,10 +317,10 @@ The following behaviours are added to `ocamlobjinfo`.
   ...
   ```
   
-Note this makes `ocamlobjinfo` depend on the C `caml_natdynlink_open`
+~~Note this makes `ocamlobjinfo` depend on the C `caml_natdynlink_open`
 primitive investigate if the function is available with an error when
 natdynlink is not available or if we need some kind of conditional
-compilation.
+compilation.~~
   
 [cmxs-read-poc]: https://gist.github.com/dbuenzli/0b773f4a4dd9f7a35f30cd9b671e48c5#file-readmeta-ml-L23-L31
 
@@ -363,9 +365,9 @@ The following behaviours are added to `ocaml` and `ocamlnat`.
 * The `#load` directive is extended to load libraries along the lines of 
   `#require`.
  
-A nice side effect of the new `#require` and `#load` directives is that 
-it doesn't mention file extensions, this allows to use it in `.ocamlinit` 
-and have it work both for `ocaml` and `ocamlnat`.
+A nice side effect of the new `#require` is that it doesn't mention
+file extensions, this allows to use it in `.ocamlinit` and have it
+work both for `ocaml` and `ocamlnat`.
 
 ## `Dynlink` library support
 
@@ -538,7 +540,18 @@ was proposed above.
   stubs will by called `liblib.a` and `dlllib.so` which will likely 
   lead to lookup problems.
 5. `ocamlobjinfo` support is done only for outputing the `lib_requires` field 
-   of `cma` and `cmxa` files.
+   of `cm{a,xa,xs}` files alongside the rest of the information. The plan 
+   to make `ocamlobjinfo` work on `cmxs` files without `bfd` was thwarted by 
+   reality see discussion [here](https://github.com/ocaml/ocaml/issues/9306).
+   For now the new `-lib-requires` flag mentioned above is not implemented
+   it's a bit unclear whether there's an advantage to add a new format 
+   for now.
+6. `ocaml` support is done. There's quite a bit of churn around 
+   load path initialisation. The support was done so that `-required`
+   libraries do not add their library directory to lookup objects 
+   on specified on the cli (i.e. `ocaml find.cmo -require lib` will 
+   not try to find `find.cmo` in the library directory of `lib`). This 
+   can be changed.
 6. There is one thing that `ocamlfind` does that the proposal missed is
    that during linking it also add library directories as `-I` includes
    to OCaml. 
