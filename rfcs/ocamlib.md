@@ -530,8 +530,7 @@ A bit of testing can be found in [this repository](https://github.com/dbuenzli/o
 Here are a few notes about what is implemented and deviations of what
 was proposed above.
 
-1. `ocamlopt` and `ocamlc` support are done except for `-linkall` needed 
-  for the Dynlink API support.
+1. `ocamlopt` and `ocamlc` support are done.
 2. `ocamlmktop` support is done (the tool simply shells out to `ocamlc`).
 3. `ocamldebug` support is done.
 4. `ocamlmklib` support is done. Note that to compile a library say 
@@ -551,8 +550,9 @@ was proposed above.
    libraries do not add their library directory to lookup objects 
    on specified on the cli (i.e. `ocaml find.cmo -require lib` will 
    not try to find `find.cmo` in the library directory of `lib`). This 
-   can be changed.
-6. There is one thing that `ocamlfind` does that the proposal missed is
+   can be changed. In custom toplevels if a library is embedded in the 
+   the toplevel executable it is not loaded if required again. 
+7. There is one thing that `ocamlfind` does that the proposal missed is
    that during linking it also add library directories as `-I` includes
    to OCaml. 
 
@@ -587,7 +587,7 @@ was proposed above.
    code executable using it, it won't fail at compile time (however
    the executable it will fail at runtime if the `.so` is not 
    accessible).
-7. The proposal had both a `-lib` and `-lib-require` flag. The former was
+8. The proposal had both a `-lib` and `-lib-require` flag. The former was
    meant to be used to denote library usage and the latter was meant to
    be used for recording library usage in library archives. 
 
@@ -606,7 +606,7 @@ was proposed above.
    and cmxas yourself according to the library convention (it's not
    something you'd do in the eco-system anyways as this would lead to
    library lookup problems).
-8. Requires and ordering. To simplify the implementation we follow the way
+9. Requires and ordering. To simplify the implementation we follow the way
    ocamlfind does when `-packages` are specified. For compilation all 
    `-require`d lib include directory are added at the end, in the given order. 
    For linking all `-require`d library archive are put before the other 
@@ -630,9 +630,63 @@ was proposed above.
    would need to merge what are currently separated references into a
    single `[ I of dir |  File of string | Require of Lib.Name.t] list`
    to be able to get the relative orderings in different contexts.
-9. It's unclear whether defaulting `OCAMLPATH` to `$(ocamlc -where)/..` is a 
+10. The `-linkall` support to embed library names in byte and native
+    code executables is done. Respectively by adding a new `LIBS`
+    section in the byte code and a new `caml_imported_libs` symbol in
+    native code with the set of library names that were fully linked
+    via `-require` and recursively. An `-assume-require LIB` was also
+    added that allows to simply add `LIB` to the set of libraries that
+    are supposed to be embedded in the executable. This is useful for
+    handling `-linkall` with uninstalled libraries or for build
+    systems that perform lookups and put library archives themselves
+    on the cli (cf. the `-noautoliblink` flag).    
+11. In theory `-assume-require a` (see 10.) and `-require b` could
+    always be used together in particular if library `b` requires `a`,
+    it won't be looked up. In practice however due to
+    point 9. problems will arise at link time since the archive you
+    specify for `a` on the cli will come after `b`'s one and lead to a
+    link error. So at the moment having dependencies from `-require`
+    to `assume-require` libraries is not really supported but that is
+    not usually the case. If that happens though you should translate
+    all `-require` to `-assume-require`, do all the lookups and
+    sorting yourself and use `-noautoliblink`.
+12. Dynlink API: support for library loading was added. Works only in
+    bytecode for now. Both `loadfile` and `loadfile_private` take a new
+    optional `ocamlpath` argument in which, if provided, libraries
+    mentioned in objects are looked up and loaded (if needed and if
+    they are not part of the executable, see `-linkall`). It is a
+    little bit unclear how libraries should be loaded by
+    `loadfile_private`, for now it was decided that the libraries that
+    a private object needs are loaded publicly. A `loadlib` function was also
+    added to load a library from a specified `OCAMLPATH` aswell as a few
+    functions to enquire about which libraries are loaded.
+13. Dynlink native API: there is currently a problem with loading the
+    libraries required by a `.cmxs` file. More time than was allocated
+    for now is needed to fully investigate this to find the right solution. The 
+    problem is that the libraries to load before the `cmxs` are mentioned in the
+    `caml_plugin_header` symbol of the `cmxs` but the `dlopen(2)`
+    complains before about missing symbols from the dependencies. A
+    [quick hack](https://github.com/dbuenzli/ocaml/commit/f15a16c234808712e4bbd5bd3cd3d5bad76de16c) 
+    was tried to load the symbols lazily using
+    [`RTLD_LAZY`](https://linux.die.net/man/3/dlopen) but it didn't
+    seem to have an effect on macOS and on linux that change makes the
+    compiler build fail at some point where it dynlinks `unix.cma` with 
+    `invalid mode for dlopen(): Invalid argument`. 
+    Here are a few options to solve that problem:
+    1. We manage to make `RTLD_LAZY` work reliably, this means we can lookup 
+       `caml_plugin_header` and load the libraries it depends on before 
+       proceeding to run the OCaml init bits.
+    2. Add seperate metadata for `cmxs` files which would be a bit sad. 
+    3. See how expensive (time and code-wise) it is to devise ad-hoc
+       executable data section symbol readers for `ELF`, `Mach-O`, and `PE`
+       executable. This would allow to lookup the `caml_plugin_header`
+       ourselves before we try do `dlopen` the `cmxs` (and allow us to
+       get rid of the `bfd` library dependency see point 5.). The problem 
+       of course is the day someone invents a new executable format the 
+       system will not be ready.
+14. It's unclear whether defaulting `OCAMLPATH` to `$(ocamlc -where)/..` is a 
    good idea or not. 
-10. This implementation has no support for `OCAMLPARAM`. 
+15. This implementation has no support for `OCAMLPARAM`. 
 
 ## Old supporting work
 
