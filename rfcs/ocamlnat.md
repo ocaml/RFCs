@@ -63,11 +63,11 @@ compiler code base.
 
 One detail to mention: IIUC the [JIT ocamlnat][ocamlnat] from [the
 paper][paper] goes directly from the linear form to binary
-assembly. Now that we have a symbolic representation of the assembly
+assembly. Now that we have a symbolic representation of x86 assembly
 we could also go from the symbolic assembly in order to share more
 logic between normal compilation and JIT.
 
-We discussed with @alainfrisch and @nobj since LexiFi has been using
+We discussed with @alainfrisch and @nojb since LexiFi has been using
 an in-memory assembler in production for a while. They mentioned that
 they would be happy to open-source the code if they can, which means
 that we could be using code that has been running in production for a
@@ -83,7 +83,7 @@ code if we went this way.
 This is one more feature to maintain in the compiler and it comes with
 a non-negligible amount of code. However, and especially if we can
 reuse LexiFi in-memory assembler, most of the additions would come from
-well tested code. @alainfrisch and @nobj also mentioned that this code
+well tested code. @alainfrisch and @nojb also mentioned that this code
 was very low-maintenance and had pretty much not changed in 5 years.
 
 # Alternatives
