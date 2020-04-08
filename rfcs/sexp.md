@@ -53,15 +53,15 @@ would be added to all existing modules of the stdlib for which it makes sense:
 
 Container types would have suitable functions added to them:
 
-- `Lazy`
+- `Lazy`, `Seq`
 
 ```
 val to_sexp: ('a -> Sexp.t) -> 'a t -> Sexp.t (* forces the argument *)
-val of_sexp_opt: (Sexp.t -> 'a option) -> Sexp.t -> 'a Lazy.t option
-val of_sexp: (Sexp.t -> 'a) -> Sexp.t -> 'a Lazy.t
+val of_sexp_opt: (Sexp.t -> 'a option) -> Sexp.t -> 'a t option
+val of_sexp: (Sexp.t -> 'a) -> Sexp.t -> 'a t
 ```
 
-- `Array`, `List`, `Option`, `Seq`
+- `Array`, `List`, `Option`
 
 ```
 val to_sexp: ('a -> Sexp.t) -> 'a t -> Sexp.t
@@ -69,7 +69,7 @@ val of_sexp_opt: (Sexp.t -> 'a option) -> Sexp.t -> 'a t option
 val of_sexp: (Sexp.t -> 'a) -> Sexp.t -> 'a t
 ```
 
-- `Hashtbl`
+- `Hashtbl`, `Result`
 
 ```
 val to_sexp: ('a -> Sexp.t) -> ('b -> Sexp.t) -> ('a, 'b) t -> Sexp.t
@@ -93,3 +93,12 @@ The following two functions would be added to `Stdlib`:
 val input_sexp: in_channel -> Sexp.t
 val output_sexp: out_channel -> Sexp.t -> unit
 ```
+
+## Compatibility module
+
+A compatibility module can also be added to OPAM to work with older OCaml
+versions.
+
+Unfortunately, a package `sexp` already
+[exists](https://github.com/janestreet/sexp), so an alternative name must be
+found.
