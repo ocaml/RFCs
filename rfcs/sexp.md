@@ -57,7 +57,7 @@ Container types would have suitable functions added to them:
 
 ```
 val to_sexp: ('a -> Sexp.t) -> 'a t -> Sexp.t (* forces the argument *)
-val of_sexp_opt: (Sexp.t -> 'a option) -> Sexp.t -> 'a t option
+val of_sexp_opt: (Sexp.t -> 'a option) -> Sexp.t -> 'a t option (* returns a strict collection *)
 val of_sexp: (Sexp.t -> 'a) -> Sexp.t -> 'a t
 ```
 
