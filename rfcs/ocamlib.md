@@ -192,7 +192,7 @@ executable that uses `MYLIB`.
 We store library dependencies in library archives (`cma`, `cmxa` and
 `cmxs` files) as *library names* to be looked up in `OCAMLPATH` at
 (dyn)link time. They are specified at library archive creation time
-via the repeatable `-lib-require` flag.
+via the repeatable `-require` flag.
 
 It was decided to push library dependencies in the library archives
 themselves rather than have yet another compiler managed side-car
@@ -202,200 +202,316 @@ file. Here are few points that motivated this decision:
   no codec for it to be implemented in the compiler.
 * It is one file less that can be missing or corrupted at the point
   where an archive has to be used.
-* It makes library archives self-contained (e.g. this is nice for `cmxs`
-  application plugins).
+* It makes library archives self-contained and allows bare 
+  archives to declare their library dependencies (e.g. this is nice 
+  for `cmxs` application plugins).
 * If needed, it makes it easier to change or migrate the information
   structure internally. The format is allowed to change on each
   version of the compiler.
 * Since it's not written as a separate file there's no fight about who 
   gets to write it during parallel `cma`, `cmxa` and `cmxs` archive creation.
 * Systems that need to get or store the information separately can
-  extract it with an `ocamlobjinfo -lib-requires` invocation which provides a 
-  simple line based and stable output accross versions of the OCaml compiler.
+  extract it with an `ocamlobjinfo` which provides a stable output
+  accross versions of the OCaml compiler.
   
 Executables that are produced with `-linkall` flag also get the name
 of the libraries that were used embedded in them so that the `Dynlink`
 API can properly load libraries with library dependencies matching
 those of the executable without double linking.
 
+## Command line interface commonalites 
+
+### Support for `OCAMLPATH` extension
+
+Every tool from the toolchain that interprets the `OCAMLPATH`
+environment variable gets a new repeateable and and ordered `-L PATH`
+option that allows to prepend `PATH` to `OCAMLPATH` from left to
+right. For example with:
+
+```
+ocamlc -L dir1 -L dir2 ...
+```
+
+The effective `OCAMLPATH` for the invocation becomes `dir2:dir1:$(OCAMLPATH)`.
+
+### Distinction between library names and file paths
+
+The `-require ARG` option argument `ARG` allows, in certain cases, to specify
+either a library name `LIB` or a file path `PATH` to an object. A
+`PATH` is unconditionally detected by the presence of the directory
+separator (`/` on Unix, `/` or `\` on Windows), otherwise the argument
+is parsed as library name. To specify a file in the current directory 
+you must thus use `./FILE`.
+
 ## `ocamlc` support 
 
 The following behaviours are added to `ocamlc`.
 
-* Archive creation. `ocamlc -a -o ar.cma -lib-require MYLIB`. The
-  repeatable and ordered `-lib-require MYLIB` option adds the library
-  name `MYLIB` to the library dependencies of `ar.cma`. This stores
-  the information in a new field `lib_requires : string list` of the
-  `cma` [library descriptor][cma-lib-descriptor]. `MYLIB` does not
-  need to exist in the current `OCAMLPATH`.
-* Compilation phase. `ocamlc -c -lib MYLIB src.ml`. The repeatable and
-  ordered `-lib MYLIB` option resolves `MYLIB` in `OCAMLPATH` and adds
-  its library directory to includes. Errors if `MYLIB` does not
-  resolve to an existing library. Type checking does not need
-  to access library archives.
-* Link phase. `ocamlc -o a.out -lib MYLIB`. The repeatable and ordered
-  `-lib MYLIB` resolves `MYLIB` in `OCAMLPATH` and adds its `lib.cma`
-  file to the link sequence. It then consults the `lib_requires` field
-  of `lib.cma`, resolve these names in `OCAMLPATH` to their `lib.cma`
-  file and add them to the link sequence and recursively in stable
-  dependency order. Errors if any library name resolution fails.
-* Link phase. Direct `ar.cma` arguments. The `lib_requires` field 
-  is consulted and the names are resolved as in the preceeding point.
-* Link phase. `-noautoliblink` can be specified to prevent the linking
-  of libraries specified in the `lib_requires` of the `.cma` files
-  considered for linking (either as direct argument or found via `-lib`).
-* Link phase. If `-linkall` is specified on the cli, the name of libraries
-  specified via `-lib` and those recursively resolved is embedded in 
-  the executable (for `Dynlink` API support).
+### Archive creation
+
+A repeatable and *ordered* `-require LIB` option with `LIB` a library name 
+is added to archive creation mode. For example:
+```
+ocamlc -a -o ar.cma -require LIB
+```
+This adds the library name `LIB` to the library dependencies of 
+archive `ar.cma`. The information is stored in a new field 
+`lib_requires : string list` of the `cma` 
+[library descriptor][cma-lib-descriptor]. 
+
+`LIB` does not need to exist in the current `OCAMLPATH` when the command
+is invoked.
 
 [cma-lib-descriptor]: https://github.com/ocaml/ocaml/blob/e18564d8393475acd9e36f02fe3b0927fe8a0f5c/file_formats/cmo_format.mli#L53-L58
+
+### Compilation phase
+
+A repeatable and *ordered* `-require LIB` option with `LIB` a library 
+name is added to compilation phase. For example:
+
+```
+ocamlc -c -I bla -require LIB src.ml
+```
+This resolves `LIB` in the `OCAMLPATH` and adds its library directory 
+to the includes after `-I bla`. Effectively `-require LIB` is replaced
+by `-I /path/to/LIB`.
+
+Errors if `LIB` does not resolve to an existing library. Note that
+type checking does not need to access library archives.
+
+### Link phase 
+
+A repeateable and *ordered* `-require LIB|PATH.cma` option is
+added to the link phase. For example:
+
+```
+ocamlc -o a.out -require ARG src.ml
+```
+
+If `ARG` is: 
+
+1. A library name `LIB`. The library is resolved in `OCAMLPATH` and its archive
+   file `lib.cma` is added to the link sequence. The `lib_requires` of 
+   `lib.cma` is read and these names are resolved in `OCAMLPATH` to their
+   `lib.cma` archive, added to the link sequence and recursively in 
+   stable dependency order. Errors if any library name resolution fails.
+2. A direct path to an archive `PATH/ar.cma` file. The archive is added to 
+   the link sequence. The `lib_requires` of `ar.cma` is read and 
+   the dependencies resolved as is done in the previous point.
+
+### Dynlink API support on `-linkall`
+
+Support is provided to record in bytecode executables which libraries are
+statically linked as a whole. 
+
+This happens whenever `-linkall` is specified. In this case the name
+of any library resolved in `OCAMLPATH` via `-require LIB|PATH.cma` is
+embedded in the executable. 
+
+Besides names specified via the new `-assume-require LIB` option are
+also added to these names. `LIB` must be a library name and it does not 
+need to exist in the current `OCAMLPATH` when the command is invoked.
 
 ## `ocamlopt` support
 
 The following behaviours are added to `ocamlopt`
 
-* Static archive creation. `ocamlopt -a -o ar.cmxa -lib-require
-  MYLIB`.  The repeatable and ordered `-lib-require MYLIB` option adds
-  the library name `MYLIB` to the library dependencies of
-  `ar.cmxa`. This stores the information in a new field
-  `lib_requires : string list` of the `cmxa` [library
-  descriptor][cmxa-lib-descriptor]. `MYLIB` does not need to exist in
-  the current `OCAMLPATH`.
-* Shared archive creation. `ocamlopt -shared -a -o ar.cmxs
-  -lib-require MYLIB`. The repeatable and ordered `-lib-require
-  MYLIB` option adds the library name `MYLIB` to the library
-  dependencies of `ar.cmxs`. This store the information in a 
-  new field `dynu_requires : string list` of the `cmxs` 
-  [plugin descriptor][cmxs-plugin-descriptor].
-  `MYLIB` does not need to exist in the current `OCAMLPATH`. If 
-  the `cmxs` is produced from a `.cmxa` then we simply transfer
-  the latter's `lib_requires` field to the `dynu_requires` field 
-  unless `-noautoliblink` is mentioned on the cli.
-* Compilation phase. `ocamlopt -c -lib MYLIB src.ml`. The repeatable and
-  ordered `-lib MYLIB` option resolves `MYLIB` in `OCAMLPATH` and adds
-  its library directory to includes. Errors if `MYLIB` does not
-  resolve to an existing library. Type checking does not need
-  to access library archives.
-* Link phase. `ocamlopt -o a.out -lib MYLIB`. The repeatable and
-  ordered `-lib MYLIB` option resolves `MYLIB` in `OCAMLPATH` and adds its
-  `lib.cmxa` file to the link sequence. It then consults the
-  `lib_requires` field of `lib.cmxa`, resolve these names in
-  `OCAMLPATH` to their `lib.cmxa` file and add them to the link
-  sequence and recursively in stable dependency order. Errors if any
-  library name resolution fails.
-* Link phase. Direct `ar.cmxa` arguments. The `lib_requires` field 
-  is consulted and the names are resolved as in the preceeding point.
-* Link phase. `-noautoliblink` can be specified to prevent the linking
-  of libraries specified in the `lib_requires` of the `.cmxa` files
-  considered for linking.
-* Link phase. If `-linkall` is specified on the cli, the name of
-  libraries specified via `-lib` and those recursively resolved is embedded in
-  the executable (for `Dynlink` API support).
-  
+### Static archive creation
+
+A repeatable and *ordered* `-require LIB` option with `LIB` a library name 
+is added to archive creation mode. For example:
+```
+ocamlopt -a -o ar.cmxa -require LIB
+```
+This adds the library name `LIB` to the library dependencies of 
+archive `ar.cmxa`. The information is stored in a new field 
+`lib_requires : string list` of the `cmxa` 
+[library descriptor][cmxa-lib-descriptor]. 
+
+`LIB` does not need to exist in the current `OCAMLPATH` when the command
+is invoked.
+
 [cmxa-lib-descriptor]: https://github.com/ocaml/ocaml/blob/8947a38b61c9de1f95bcd2f5ec8292987211bf4b/file_formats/cmx_format.mli#L53-L56
+
+### Shared archive creation (plugins)
+
+A repeatable and *ordered* `-require LIB|PATH.cmxa` option with `LIB` a library 
+name is added to shared archive creation mode. For example:
+```
+ocamlopt -shared -a -o ar.cmxs -require LIB
+```
+
+If `ARG` is: 
+
+1. A library name `LIB`, this adds the library name `LIB` to the library
+   dependencies of the archive `ar.cmxs`. This information is stored in 
+   a new field `dynu_requires : string list` of the `cmxs` 
+   [plugin descriptor][cmxs-plugin-descriptor]. `LIB` does not need to 
+   exist in the current `OCAMLPATH`. 
+2. A direct path to an archive `PATH/ar.cmxa` file. The archive 
+   is added to the link sequence *and* its `lib_requires` field is 
+   added to to the `dynu_requires` field of the `cmxs` plugin 
+   descriptor.
+
 [cmxs-plugin-descriptor]: https://github.com/ocaml/ocaml/blob/8947a38b61c9de1f95bcd2f5ec8292987211bf4b/file_formats/cmxs_format.mli#L32-L35
+
+### Compilation phase
+
+A repeatable and *ordered* `-require LIB` option with `LIB` a library 
+name is added to compilation phase. For example:
+
+```
+ocamlopt -c -I bla -require LIB src.ml
+```
+
+This resolves `LIB` in the `OCAMLPATH` and adds its library directory 
+to the includes after `-I bla`. Effectively `-require LIB` is replaced
+by `-I /path/to/LIB`.
+
+Errors if `LIB` does not resolve to an existing library. Note that
+type checking does not need to access library archives.
+
+### Link phase 
+
+A repeateable and *ordered* `-require LIB|PATH.cma` option is
+added to the link phase. For example:
+
+```
+ocamlopt -o a.out -require ARG src.ml
+```
+
+If `ARG` is: 
+
+1. A library name `LIB`. The library is resolved in `OCAMLPATH` and its archive
+   file `lib.cmxa` is added to the link sequence. The `lib_requires` of 
+   `lib.cmxa` is read and these names are resolved in `OCAMLPATH` to their
+   `lib.cmxa` archive, added to the link sequence and recursively in 
+   stable dependency order. Errors if any library name resolution fails.
+2. A direct path to an archive `PATH/ar.cmxa` file. The archive is added to 
+   the link sequence. The `lib_requires` of `ar.cmxa` is read and 
+   the dependencies resolved as is done in the previous point.
+
+
+### Dynlink API support on `-linkall`
+
+Support is provided to record in native code executables which
+libraries are statically linked as a whole.
+
+This whenever `-linkall` is specified. In this case the name of any
+library resolved in `OCAMLPATH` via `-require LIB|PATH.cmxa` is
+embedded in the executable. 
+
+Besides names specified via the new `-assume-require LIB` option 
+are also added to these names. `LIB` must be a library name and it does
+not need to exist in the current `OCAMLPATH` when the command is invoked.
+  
 
 ## `ocamlobjinfo` support
 
 The following behaviours are added to `ocamlobjinfo`.
 
-* The regular `ocamlobjinfo` output on `cmxa` and `cma` is extended
-  according to the current format to output the new `lib_requires` field.
-* ~~`ocamlobjinfo` is made to work on `cmxs` by using the support provided 
-  by `Dynlink` (if available) to output the plugin information rather 
-  than relying on the BDF library (see POC [here][cmxs-read-poc])~~.
-  That approach is too fragile w.r.t. C bits that may live in the 
-  cmxs see discussion [here](https://github.com/ocaml/ocaml/issues/9306).
-* A new `-lib-requires` flag is added that extracts the new `lib_requires`
-  from `cma` and `cmxa` and `dyn_requires` from `cmxs` files. According
-  the following line based format: 
-  ```
-  File: PATH
-  LIBREQ0
-  LIBREQ1
-  LIBREQ2
-  ...
-  ```
-  
-~~Note this makes `ocamlobjinfo` depend on the C `caml_natdynlink_open`
-primitive investigate if the function is available with an error when
-natdynlink is not available or if we need some kind of conditional
-compilation.~~
-  
-[cmxs-read-poc]: https://gist.github.com/dbuenzli/0b773f4a4dd9f7a35f30cd9b671e48c5#file-readmeta-ml-L23-L31
+* The regular `ocamlobjinfo` output on `cma`, `cmxa` and `cmxs` (if
+  BDF library is available) is extended according to the current
+  format to output the new `lib_requires` and `dynu_requires` field.s
 
 ## `ocamldep`, `ocamldebug`, `ocamlmktop` and `ocamlmklib` support 
 
 The following behaviours are added to `ocamldep` and `ocamldebug`
 
-* `(ocamldep |ocamldebug) -lib MYLIB`. The repeatable and ordered
-  `-lib MYLIB` option resolves `MYLIB` in `OCAMLPATH` and adds its
-  library directory to includes. Errors if `MYLIB` does not resolve to
+* `(ocamldep |ocamldebug) -require LIB`. The repeatable and ordered
+  `-require LIB` option resolves `LIB` in `OCAMLPATH` and adds its
+  library directory to includes. Errors if `LIB` does not resolve to
   an existing library.
 
 The following behaviours are added to `ocamlmktop`
 
-* The repeatable and ordered `-lib MYLIB` option resolves and links
-  `MYLIB`'s dependencies as per `ocamlc` support. So goes for direct
+* The repeatable and ordered `-require LIB` option resolves and links
+  `LIB`'s dependencies as per `ocamlc` support. So goes for direct
   `cma` arguments.
 
 The following behaviours are added to `ocamlmklib`
 
-* The repeateable and ordered `-lib-require LIB` argument is added 
+* The repeateable and ordered `-require LIB` argument is added 
   and propogated to the resulting `cma`, `cmxa` and `cmxs` files.
 
 ## `ocaml` and `ocamlnat` support
 
 The following behaviours are added to `ocaml` and `ocamlnat`.
 
-* The repeatable and ordered `-lib MYLIB` option resolve 
-  `MYLIB` in `OCAMLPATH` adds its directory to includes and 
-  loads the library and its dependencies according to `cma` linking
-  (for `ocaml`, see `ocamlc` support) or to `cmxs` linking 
-  (for `ocamlnat`, see `ocamlopt` support, though that happens with 
-   the info in `cmxs` files). Note that directories of dependent
-   libraries are *not* added to the includes.
+### `-require` option
 
-* The new `#require "MYLIB"` directive is added to the interactive toplevel.
-  This directive resolves `MYLIB` in `OCAMLPATH` and adds its library
-  directory to includes. It then loads the library and its
-  dependencies as per the preceeding point. Here again directories of
-  dependent libraries are *not* added to includes.
- 
-* The `#load` directive is extended to load libraries along the lines of 
-  `#require`.
- 
-A nice side effect of the new `#require` is that it doesn't mention
-file extensions, this allows to use it in `.ocamlinit` and have it
-work both for `ocaml` and `ocamlnat`.
+The repeatable and ordered `-require LIB|PATH.cm(a|xs)` is added 
+to `ocaml` and `ocamlnat`. For example:
+
+```
+ocaml -require ARG 
+```
+
+If `ARG` is: 
+
+1. A library name `LIB`. The library is resolved in `OCAMLPATH`, this 
+   adds its directory to includes and loads the library archive and its 
+   dependencies according to `cma` linking (for `ocaml`, see `ocamlc` support) 
+   or to `cmxa` linking (for `ocamlnat` see `ocamlopt` support). Note that 
+   directories of dependent libraries are *not* added to the includes.
+2. A direct path to an archive `PATH/ar.cma` file. `PATH` is added to the 
+   include directories and `ar.cma` and its dependencies are loaded like
+   in the preceeding point.
+
+Note that in the above if any of the names resolved in the `OCAMLPATH` is 
+already embedded in the `ocaml` or `ocamlnat` executable, the names are 
+not resolved (see `ocamlc` and `ocamlopt` Dynlink API support).
+
+### `#require` directive
+
+A new `#require "ARG"` directive is added to the toplevel. If `ARG` is 
+
+1. A library name `LIB`. The library is resolved in `OCAMLPATH`, its
+   directory added to the includes, its library archive and its
+   dependencies are loaded according to `cma` linking 
+   (for `ocaml`, see `ocamlc` support) or to `cmxa` linking 
+   (for `ocamlnat`, see `ocamlopt` support)). Note that directories 
+   of dependent libraries are *not* added to the includes.
+2. A direct path to an archive `PATH/ar.cma` file. `PATH` is added 
+   to the include di
+       
+
+Note that in the above if any of the names resolved in the `OCAMLPTH` is 
+already embedded in the `ocaml` or `ocamlnat` executable, the names are
+not resolved (see `ocamlc` and `ocamlopt` Dynlink API support).
+
+A nice side effect of the new `#require` is that if used with library
+names doesn't mention file extensions, this allows to use it in
+`.ocamlinit` and have it work both for `ocaml` and `ocamlnat`. We will 
+also make sure to make `ocamlnat` use `Dynlink.adapt_filename` when file
+paths are specified to `#require` so that a mention of `cma` get turns into
+a mention of a `cmxs`.
+
 
 ## `Dynlink` library support
 
 The following entry point is added:
 
 ```
-Dynlink.loadlib : ?ocamlpath:string list -> string -> unit 
+Dynlink.require : ocamlpath:string list -> string -> unit 
 ```
+In `Dynlink.require ~ocamlpath arg` if `arg` is:
 
-In byte code programs if a `cma` is loaded its `lib_requires` field
-(see `ocamlc -a` support) is consulted and the library names are
-resolved. First we check if those exist in the executable itself
-(cf. linking with `-linkall` above), if that happens nothing needs to
-be done. Otherwise the library is resolved to a `cma` file to load
-according to the directories mentioned in `ocamlpath` (defaults to the
-contents of `OCAMLPATH`) and recursively in dependency order.
-
-In native code the same happens with `cmxs` files via the new
-`dynu_requires` field (see `ocamlopt -shared` support).
+1. A library name `LIB`, then `LIB` is looked up in the `OCAMLPATH`, its
+   library archive gets loaded and its recursive dependencies in the correct 
+   order. 
+2. An archive `PATH/ar.cm(a|xs)`, then the archive and its recursive 
+   dependencies in the correct order.
+   
+In both cases if any resolution requested in the `OCAMLPATH` is a library
+name that already exists in the executable (see `ocamlc` and `ocamlopt` Dynlink
+API support), the requested name is not looked up and assumed to be already
+loaded. 
 
 Keeping track of library names present in the executable and those
-loaded by calls to `Dynlink.loadlib` will be a matter of extending the
+loaded by calls to `Dynlink.require` is a matter of extending the
 existing Dynlink API's [state structure][dynlink-state] which
 currently keeps track of these things at the compilation unit level.
-
-*Note* it might be possible to meld this into the existing entry
-points of the `Dynlink` module rather than add a new entry point but
-there are a few things to consider w.r.t. access control.
 
 [dynlink-state]: https://github.com/ocaml/ocaml/blob/03c33f500563f3e12355694f1add98e7bd1096ae/otherlibs/dynlink/dynlink_common.ml#L45-L63
 
@@ -430,7 +546,7 @@ as if the following `R/foo/META` file exists:
 
 ```
 package "bar" (
-requires = ... # contents of `ocamlobjinfo -lib-requires R/foo/bar/lib.cma` 
+requires = ... # contents of `ocamlobjinfo's require of R/foo/bar/lib.cma` 
 directory = "bar"
 archive(byte) = "lib.cma"
 archive(native) = "lib.cmxa"
@@ -446,8 +562,8 @@ Since `ocamlfind` is in charge to put the recursive archive
 dependencies on the compiler cli at the link phase and that there may
 be a mix of archive using `META` files and others using the new
 mecanism it must take care to resolve the dependencies of the latter
-according to the `OCAMLPATH` semantics and specify `-noautoliblink` so
-that no double linking occurs.
+according to the `OCAMLPATH` semantics and specify them as bare archives
+on the command line so that no double linking occurs. 
 
 ## `dune` support
 
@@ -457,7 +573,7 @@ installs.
 
 Once the compiler supports this proposal, Dune will start installing
 library artifacts using the convention described in this document. It
-will also pass the `-lib-require` field when assembling library
+will also pass the `-require` field when assembling library
 archives. This will be a non-breaking change since from the point of
 view of users the naming of artifacts is a implementation detail of
 Dune. Dune will only enforce the new convention for the libraries it
@@ -515,9 +631,11 @@ Work on the proposal has started thanks to a grant of the
 ### OCaml status
 
 Partial implementation for the compiler support is available
-[here](https://github.com/ocaml/ocaml/compare/trunk...dbuenzli:ll). For 
-interested reviewers, the patches are meant to be read individually and in 
-sequence.
+[here](https://github.com/ocaml/ocaml/compare/trunk...dbuenzli:ll)
+for the previous iteration of this RFC.
+
+For interested reviewers, the patches are meant to be read
+individually and in sequence.
 
 To create an opam switch with a compiler that has that support in you can use:
 ```
