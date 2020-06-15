@@ -52,9 +52,9 @@ val tee : out_channel -> out_channel -> out_channel
 In fact, I'm not sure why the channels are still implemented in C. I think the base case could be
 a raw Unix file descriptor and a `bytes` buffer — but maybe this is needed for portability.
 
-## Interface improvement
+## Interface improvement for `in_channel`
 
-The current interface of `in_channel` provides, roughly, `read: bytes -> int -> int -> int`
+The current interface of `in_channel` provides, roughly, `input : bytes -> int -> int -> int`
 which takes a byte slice and returns how many bytes were read, `0` indicating end of input.
 This interface doesn't expose the underlying buffer  and instead imitates the lower level posix APIs.
 
@@ -77,7 +77,22 @@ module In_channel : sig
 end
 ```
 
-This interface is easier to use than the current `read` interface, especially when
+The semantics of these operations is:
+
+- `fill_buf ic` ensures that the channel's internal buffer is non-empty, unless
+  end-of-input was reached. Then, it exposes a view of the internal buffer.
+  The important aspect of this is that successive calls to `fill_buf` return
+  the same result; this doesn't consume input on a logical level. This function
+  just exposes a slice of the input.
+- `consume ic n` eats `n` bytes of the input. It must only be called after
+  `fill_buf` returned a slice of length at least `n`. If the whole slice
+  exposed by `fill_buf` was consumed, then the channel will have to read more
+  from its underlying stream at the next call to `fill_buf`.
+- `close ic` closes the channel and releases underlying resources.
+
+### Advantages
+
+This interface is easier to use than the current `input` interface, especially when
 parsing formats with non-trivial framing (e.g. http1.1). One typically wants
 to read a line to get headers and framing (content-length) information, followed
 by a read of `n` bytes. It is therefore important to read the line(s) efficiently
@@ -89,18 +104,11 @@ which uses a magical external to look inside the C buffer, with this snippet
 (adapted from [tiny httpd](https://github.com/c-cube/tiny_httpd/blob/3ac5510e2d5dfcdf448a03a99c0c178b73afeabd/src/Tiny_httpd.ml#L159)):
 
 ```ocaml
-(* byte stream *)
-type t = {
-  bs_fill_buf: unit -> (bytes * int * int);
-  bs_consume: int -> unit;
-  bs_close: unit -> unit;
-}
-
-let read_line (self:t) : String.t =
-  let buf = Buffer.create() in
+let input_line (ic:In_channel.t) : String.t =
+  let buf = Buffer.create 32 in
   let continue = ref true in
   while !continue do
-    let s, i, len = self.bs_fill_buf () in
+    let s, i, len = In_channel.fill_buf ic in
     if len=0 then (
       continue := false;
       if Buffer.length buf = 0 then raise End_of_file;
@@ -112,34 +120,34 @@ let read_line (self:t) : String.t =
     done;
     if !j-i < len then (
       assert (Bytes.get s !j = '\n');
-      Buffer.add_bytes buf s i (!j-i); (* without \n *)
-      self.bs_consume (!j-i+1); (* remove \n *)
+      Buffer.add_bytes buf s i (!j-i); (* without '\n' *)
+      In_channel.consume ic (!j-i+1); (* consume rest of line + '\n' *)
       continue := false
     ) else (
-      Buf_.add_bytes buf s i len;
-      self.bs_consume len;
+      Buffer.add_bytes buf s i len;
+      In_channel consume ic len;
     )
   done;
   Buffer.contents buf
 ```
 
-### Solution
+### Compatibility
 
 The current type of channels could retain its interface, for retro-compatibility,
 in addition to the new interface which exposes `consume` and `fill_buf`,
-but implement read, in the general case, as follows
+but implement `input`, in the general case, as follows
 (adapted from [tiny httpd](https://github.com/c-cube/tiny_httpd/blob/3ac5510e2d5dfcdf448a03a99c0c178b73afeabd/src/Tiny_httpd.ml#L146)):
 
 ```ocaml
-let read (self:in_channel) buf i len : int =
+let input (ic:In_channel.t) buf i len : int =
   let offset = ref 0 in
   let continue = ref true in
   while continue && !offset < len do
-    let s, j, n = self.bs_fill_buf () in
-    let n_read = min len (len - !offset) in
+    let s, j, n = In_channel.fill_buf ic () in
+    let n_read = min n (len - !offset) in
     Bytes.blit s j buf (i + !offset) n_read;
     offset := !offset + n_read;
-    self.bs_consume n_read;
+    In_channel.consume ic n_read;
     if n_read=0 then continue := false; (* eof *)
   done;
   !offset
@@ -148,3 +156,18 @@ let read (self:in_channel) buf i len : int =
 
 In most cases this should only do one iteration if `n` is smaller than the
 underlying buffer's size.
+
+**Alternatively**, this can be considered the implementation of `really_input`,
+and have input be just:
+
+```ocaml
+let input (ic:In_channel.t) buf i len : int =
+  let s, j, n = In_channel.fill_buf ic in
+  let n_read = min n len in
+  Bytes.blit s j buf i n_read;
+  In_channel.consume ic n_read;
+  n_read
+```
+
+Here we see that the classic `input` is simply the successive application
+of `fill_buf` and `consume`.
