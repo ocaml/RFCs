@@ -218,4 +218,12 @@ This change would improve the API of input channels, making them more flexible
 for some use cases that involve dynamic framing of input. Examples include http1
 (as well as its chunked encoding), the Redis protocol, and netstrings.
 
+## Related interfaces
+
+- Batteries has [BatIO](http://ocaml-batteries-team.github.io/batteries-included/hdoc2/BatIO.html)
+  which also contains an extensible type for channels.
+  However, it's not compatible with the stdlib's channels, so projects cannot
+  export such channels in their APIs unless they force the batteries dependency.
+- ocamlnet has [Netchannels](http://projects.camlcity.org/projects/dl/ocamlnet-4.1.6/doc/html-main/Netchannels_tut.html)
+  which is also extensible.
 
