@@ -62,7 +62,7 @@ The problem of this interface is that it makes some functions quite awkward to w
 An interesting alternative is [rust's `BufRead` interface](https://doc.rust-lang.org/std/io/trait.BufRead.html).
 In OCaml, that corresponds roughly to:
 
-```
+```ocaml
 module In_channel : sig
   type t
 
