@@ -133,7 +133,7 @@ let input_line (ic:In_channel.t) : String.t =
 
 ### Compatibility
 
-The current type of channels could retain its interface, for retro-compatibility,
+The current type of channels could retain its interface, for backward compatibility,
 in addition to the new interface which exposes `consume` and `fill_buf`,
 but implement `input`, in the general case, as follows
 (adapted from [tiny httpd](https://github.com/c-cube/tiny_httpd/blob/3ac5510e2d5dfcdf448a03a99c0c178b73afeabd/src/Tiny_httpd.ml#L146)):
