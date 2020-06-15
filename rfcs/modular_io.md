@@ -131,6 +131,12 @@ let input_line (ic:In_channel.t) : String.t =
   Buffer.contents buf
 ```
 
+In the stdlib implementation, the external
+[`input_scan_line`](https://github.com/ocaml/ocaml/blob/f333db8b0f176b1d75e6fdb46a97a78995426ed7/stdlib/stdlib.ml#L437)
+is used to peek inside the `in_channel`'s buffer, breaking the abstraction of `input`.
+This shows that peeking into the buffer without consuming it is quite necessary
+in practice.
+
 ### Compatibility
 
 The current type of channels could retain its interface, for backward compatibility,
