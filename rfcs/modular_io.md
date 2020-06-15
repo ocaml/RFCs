@@ -178,6 +178,22 @@ let input (ic:In_channel.t) buf i len : int =
 Here we see that the classic `input` is simply the successive application
 of `fill_buf` and `consume`.
 
+
+### Relation to the extensibility aspect
+
+This is compatible with the extensibility approach from above. The new API
+would be:
+
+```ocaml
+type in_channel =
+  | IC_raw of old_in_channel (* implemented in C *)
+  | IC_user of {
+    fill_buf: unit -> (bytes * int * int);
+    consume: int -> unit;
+    close: unit -> unit;
+  }
+```
+
 ### Out channel
 
 There is no equivalent need to modify the interface of `out_channel`. Buffered
