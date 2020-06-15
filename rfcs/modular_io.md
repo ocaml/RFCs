@@ -2,7 +2,7 @@
 
 This RFC proposes to update the stdlib's types `in_channel` and `out_channel` to make them user-definable and composable.
 
-Even though a lot of networked applications use lwt or async to achieve high levels of concurrency, classic blocking IO still has its uses. However, the standard OCaml channels suffer from some annoying limitations:
+Even though a lot of networked applications use lwt or async to achieve high levels of concurrency, classic blocking IO still has its uses. However, the standard OCaml channels suffer from some painful limitations:
 
 - they cannot be created outside the stdlib, which means the only thing we can manipulate through them is sockets and other unix file descriptors.
 - they cannot be composed. In other languages [such as Go](https://golang.org/pkg/io/#Reader), one can write reader or writer combinators which transform the bytestream
