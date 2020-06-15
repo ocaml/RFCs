@@ -64,6 +64,17 @@ This change would dramatically improve compositionality, as one could then:
   compression;
 - use APIs that only operate on `in_channel` with strings.
 
+### Backward compatibility
+
+Functions in `Unix` that map file descriptors to/from channels would become
+partial (i.e. they wouldn't work on user-defined channels). The `Unix.seek`
+function would not work on user defined channels, but it
+is already partial anyway (because of sockets).
+
+A function `{in_out}_channel_has_descr : {in,out}_channel -> bool` would help
+know what channels correspond to unix file descriptors. Alternatively, **if**
+the sum type is made public, a mere pattern matching can do.
+
 ## Interface improvement for `in_channel`
 
 The current interface of `in_channel` provides, roughly, `input : bytes -> int -> int -> int`
