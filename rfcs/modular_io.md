@@ -171,3 +171,8 @@ let input (ic:In_channel.t) buf i len : int =
 
 Here we see that the classic `input` is simply the successive application
 of `fill_buf` and `consume`.
+
+### Out channel
+
+There is no equivalent need to modify the interface of `out_channel`. Buffered
+output is simpler as one doesn't need to look inside the buffer at all.
