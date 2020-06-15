@@ -10,6 +10,10 @@ that is written or read. Typical examples would include (de)compression and encr
 - there is some duplication in `Printf`; namely, the existence, and incompatibility, of `bprintf`, `sprintf`, and `fprintf`. This makes `Printf` printers artificially limited
   since their type determines what kind of output they can produce. In my own experience, `Format` is a better choice because a single `Format.formatter -> t -> unit` function
   can be used in more cases than any single `Printf` function, despite the overhead of formatters.
+- input channels provide an API that is unsuited to some forms of parsing such
+  as reading line by line. The stdlib's `input_line` has to cheat and use
+  a special C primitive to know how much input to consume (by looking for `'\n'`
+  in the underlying buffer).
 
 As a consequence, many libraries have their own opaque channel types that
 are not compatible with the standard ones. That's a missed opportunity for
@@ -49,8 +53,16 @@ val tee : out_channel -> out_channel -> out_channel
 
 ```
 
-In fact, I'm not sure why the channels are still implemented in C. I think the base case could be
+**Aside**: In fact, I'm not sure why the channels are still implemented in C. I think the base case could be
 a raw Unix file descriptor and a `bytes` buffer — but maybe this is needed for portability.
+
+This change would dramatically improve compositionality, as one could then:
+
+- implement `Printf.{b,s}printf` in terms of `Printf.fprintf` (which would be
+  the most general one of the three);
+- compose transformations on channels, such as encoding, http chunking, encryption,
+  compression;
+- use APIs that only operate on `in_channel` with strings.
 
 ## Interface improvement for `in_channel`
 
@@ -58,7 +70,8 @@ The current interface of `in_channel` provides, roughly, `input : bytes -> int -
 which takes a byte slice and returns how many bytes were read, `0` indicating end of input.
 This interface doesn't expose the underlying buffer  and instead imitates the lower level posix APIs.
 
-The problem of this interface is that it makes some functions quite awkward to write.
+The problem of this interface is that it makes some functions quite awkward to write,
+and hurts compositionality.
 An interesting alternative is [rust's `BufRead` interface](https://doc.rust-lang.org/std/io/trait.BufRead.html).
 In OCaml, that corresponds roughly to:
 
@@ -198,3 +211,11 @@ type in_channel =
 
 There is no equivalent need to modify the interface of `out_channel`. Buffered
 output is simpler as one doesn't need to look inside the buffer at all.
+
+### Summary
+
+This change would improve the API of input channels, making them more flexible
+for some use cases that involve dynamic framing of input. Examples include http1
+(as well as its chunked encoding), the Redis protocol, and netstrings.
+
+
