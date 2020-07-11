@@ -18,6 +18,8 @@ This is useful for two things:
 
 An experimental implementation is available as PR [#9042](https://github.com/ocaml/ocaml/pull/9042).
 
+There is also a draft [abstract](nominal-types.pdf), explaining both injectivity annotations and nominal types. Note that injectivity annotations are already merged in trunk, but the above PR is not rebased yet to include them.
+
 ## Motivation
 
 Here are some common problems with GADTs and abstract types:
