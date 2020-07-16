@@ -101,9 +101,9 @@ type 'a u [@@nominal] <: type 'a u
 type 'a u [@@nominal "s"] <: type 'a u [@@nominal]
 type 'a u = 'a t <: type 'a u [@@nominal "s"] if type 'a t <: type 'a u [@@nominal "s"]
 type 'a u = 'a t <: type 'a u [@@nominal] if type 'a t <: type 'a u [@@nominal]
-type 'a v = A [@@nominal "s"] <: type 'a v [@@nominal]
+type 'a v = A [@@nominal "s"] <: type 'a v [@@nominal "s"]
 type 'a v = A <: type 'a v [@@nominal]
-type 'a v = 'a w = A [@@nominal "s"] <: type 'a v = A [@@nominal s]
+type 'a v = 'a w = A [@@nominal "s"] <: type 'a v = A [@@nominal "s"]
 ```
 (rules for records and extension types are identical)
 Note that in all cases arity and parameter order must be preserved.
