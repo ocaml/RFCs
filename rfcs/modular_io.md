@@ -19,6 +19,14 @@ As a consequence, many libraries have their own opaque channel types that
 are not compatible with the standard ones. That's a missed opportunity for
 code reuse and composability.
 
+## Proof of concept
+
+A proof of concept is being developped at https://github.com/c-cube/poc-modular-io .
+
+It features the improved interface from below, extensible `In.t` and `Out.t`
+types, and a bunch of combinators written against the *public* interface,
+including `read_line`, http1.1 chunked encoding, char-by-char mapping, etc.
+
 ## Extensibility
 
 The current types are implemented in C and are opaque. I propose that it be changed for:
