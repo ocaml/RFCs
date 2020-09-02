@@ -308,7 +308,7 @@ This happens whenever `-linkall` is specified. In this case the name
 of any library resolved in `OCAMLPATH` via `-require LIB|PATH.cma` is
 embedded in the executable. 
 
-Besides names specified via the new `-assume-require LIB` option are
+Besides names specified via the new `-assume-library LIB` option are
 also added to these names. `LIB` must be a library name and it does not 
 need to exist in the current `OCAMLPATH` when the command is invoked.
 
@@ -401,7 +401,7 @@ This whenever `-linkall` is specified. In this case the name of any
 library resolved in `OCAMLPATH` via `-require LIB|PATH.cmxa` is
 embedded in the executable. 
 
-Besides names specified via the new `-assume-require LIB` option 
+Besides names specified via the new `-assume-library LIB` option 
 are also added to these names. `LIB` must be a library name and it does
 not need to exist in the current `OCAMLPATH` when the command is invoked.
   
@@ -769,21 +769,21 @@ was proposed above.
     code executables is done. Respectively by adding a new `LIBS`
     section in the byte code and a new `caml_imported_libs` symbol in
     native code with the set of library names that were fully linked
-    via `-require` and recursively. An `-assume-require LIB` was also
+    via `-require` and recursively. An `-assume-library LIB` was also
     added that allows to simply add `LIB` to the set of libraries that
     are supposed to be embedded in the executable. This is useful for
     handling `-linkall` with uninstalled libraries or for build
     systems that perform lookups and put library archives themselves
     on the cli (cf. the `-noautoliblink` flag).    
-11. In theory `-assume-require a` (see 10.) and `-require b` could
+11. In theory `-assume-library a` (see 10.) and `-require b` could
     always be used together in particular if library `b` requires `a`,
     it won't be looked up. In practice however due to
     point 9. problems will arise at link time since the archive you
     specify for `a` on the cli will come after `b`'s one and lead to a
     link error. So at the moment having dependencies from `-require`
-    to `assume-require` libraries is not really supported but that is
+    to `assume-library` libraries is not really supported but that is
     not usually the case. If that happens though you should translate
-    all `-require` to `-assume-require`, do all the lookups and
+    all `-require` to `-assume-library`, do all the lookups and
     sorting yourself and use `-noautoliblink`.
 12. Dynlink API: support for library loading was added. Works only in
     bytecode for now. Both `loadfile` and `loadfile_private` take a new
