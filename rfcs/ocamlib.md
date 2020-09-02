@@ -140,6 +140,12 @@ We get the following map between library directories and library names:
     /usr/lib/ocaml/ocaml/unix                  ocaml.unix
     /usr/lib/ocaml/re/emacs                    N/A (shadowed)
 
+If you are implementing library object lookups in the `OCAMLPATH`, you
+have to stop looking up after finding the first library directory. In
+the example above assuming `re.emacs` has no bytecode version of the
+library you *MUST NOT* look into `/usr/lib/ocaml/re/emacs` for the
+bytecode version.
+    
 In what follows we use library names and the relative path it
 represents interchangeably. When a library name is used to denote a
 directory or file path we assume the `.` have been substituted with
