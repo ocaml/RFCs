@@ -473,7 +473,7 @@ A new `#require "ARG"` directive is added to the toplevel. If `ARG` is
    (for `ocamlnat`, see `ocamlopt` support)). Note that directories 
    of dependent libraries are *not* added to the includes.
 2. A direct path to an archive `PATH/ar.cma` file. `PATH` is added 
-   to the include di
+   to the include directories.
        
 
 Note that in the above if any of the names resolved in the `OCAMLPTH` is 
@@ -490,10 +490,11 @@ a mention of a `cmxs`.
 
 ## `Dynlink` library support
 
-The following entry point is added:
+We add the following entry points:
 
 ```
 Dynlink.require : ocamlpath:string list -> string -> unit 
+Dynlink.assume_library : string -> unit
 ```
 In `Dynlink.require ~ocamlpath arg` if `arg` is:
 
@@ -507,6 +508,22 @@ In both cases if any resolution requested in the `OCAMLPATH` is a library
 name that already exists in the executable (see `ocamlc` and `ocamlopt` Dynlink
 API support), the requested name is not looked up and assumed to be already
 loaded. 
+
+A call to `Dynlink.assume_library n` add library name `n` to the set of 
+loaded libraries names without loading anything.
+
+We also add the following functions to query the state of the program w.r.t. 
+to loaded libraries.
+```
+Dynlink.loaded_libraries : unit -> string list 
+(** [Dynlink.loaded_libraries ()] is the 
+    the list of library names loaded in the program 
+    (including libraries already linked in the executable). *)
+    
+Dynlink.is_library_loaded : string -> bool
+(** [Dynlink.is_library_loaded l] is 
+    [List.mem l (Dynlink.loaded_libraries ())] *)
+```
 
 Keeping track of library names present in the executable and those
 loaded by calls to `Dynlink.require` is a matter of extending the
