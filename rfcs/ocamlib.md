@@ -482,12 +482,12 @@ A new `#require "ARG"` directive is added to the toplevel. If `ARG` is
    to the include directories.
        
 
-Note that in the above if any of the names resolved in the `OCAMLPTH` is 
+Note that in the above if any of the names resolved in the `OCAMLPATH` is 
 already embedded in the `ocaml` or `ocamlnat` executable, the names are
 not resolved (see `ocamlc` and `ocamlopt` Dynlink API support).
 
 A nice side effect of the new `#require` is that if used with library
-names doesn't mention file extensions, this allows to use it in
+names, it doesn't mention file extensions, this allows to use it in
 `.ocamlinit` and have it work both for `ocaml` and `ocamlnat`. We will 
 also make sure to make `ocamlnat` use `Dynlink.adapt_filename` when file
 paths are specified to `#require` so that a mention of `cma` get turns into
@@ -611,6 +611,53 @@ libraries in Dune. On the plus side, it will simplify a bit the Dune
 code base.
 
 Starting from Dune 4, Dune will no longer generate `META` files.
+
+## Examples
+
+### Compiling and using libraries locally in a build
+
+The following shows how to compile and layout two libraries 
+to use locally in a build. We have:
+
+* Library `a` made of source `a.ml` depending on the `ocaml.str` 
+  library.
+* Library `b` made of source `b.ml` depending on the library `a`.
+* An executable `exec.ml` which depends on `b`
+
+Here are our sources:
+
+```
+.
+├── a.ml
+├── b.ml
+└── exec.ml
+```
+We create directories for the libraries. The `libs` directory 
+will be added to the `OCAMLPATH`.
+
+```
+mkdir -p libs libs/a libs/b
+```
+
+We compile and layout library `a`:
+
+```
+ocamlopt -require ocaml.str -c -o libs/a/a.cmx a.ml
+ocamlopt -require ocaml.str -a -o libs/a/lib.cmxa libs/a/a.cmx
+```
+
+We compile and layout library `b`. We extend the OCAMLPATH on the 
+command line via the `-L` option.
+
+```
+ocamlopt -L libs -require a -c -o libs/b/b.cmx b.ml
+ocamlopt -L libs -require a -a -o libs/b/lib.cmxa libs/b/b.cmx
+```
+
+We compile our executable:
+```
+ocamlopt -L libs -require b exec.ml
+```
 
 ## Unresolved issues 
 
