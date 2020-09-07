@@ -661,6 +661,18 @@ ocamlopt -L libs -require b exec.ml
 
 ## Unresolved issues 
 
+### OCAMLPATH initial value
+
+At the moment the proposal has no default value for the `OCAMLPATH`.
+This means that without specifying any `OCAMLPATH` only the stdlib is
+available for compiling and by definition any `-require LIB` will
+fail for any library name `LIB`.
+
+It is expected that system itegrators will setup an appropriate
+`OCAMLPATH` when needed (e.g. on `eval $(opam env)`) and according to
+the install structure they choose. Whether a more complex mecanism is
+needed will be discussed in due time with system integrators.
+
 ### Compilation phase includes
 
 At the moment the proposal indicates that during the compilation phase
