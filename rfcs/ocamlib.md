@@ -238,7 +238,7 @@ right. For example with:
 ocamlc -L dir1 -L dir2 ...
 ```
 
-The effective `OCAMLPATH` for the invocation becomes `dir2:dir1:$(OCAMLPATH)`.
+The effective `OCAMLPATH` for the invocation becomes `dir1:dir2:$(OCAMLPATH)`.
 
 ### Distinction between library names and file paths
 
