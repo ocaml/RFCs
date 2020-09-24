@@ -304,19 +304,23 @@ If `ARG` is:
 2. A direct path to an archive `PATH/ar.cma` file. The archive is added to 
    the link sequence. The `lib_requires` of `ar.cma` is read and 
    the dependencies resolved as is done in the previous point.
+   
+A repeateable and unordered `-assume-library LIB` option is added to
+the link phase. `LIB` must be a library name and it does not need to
+exist in the current `OCAMLPATH` when the command is invoked. Using
+this flag requires library name `LIB` and assumes it was already
+resolved. The user is in charge in providing its functionality on 
+the cli as bare objects.
 
 ### Dynlink API support on `-linkall`
 
-Support is provided to record in bytecode executables which libraries are
-statically linked as a whole. 
+Support is provided to record which libraries are fully statically
+linked in bytecode executables.
 
 This happens whenever `-linkall` is specified. In this case the name
-of any library resolved in `OCAMLPATH` via `-require LIB|PATH.cma` is
-embedded in the executable. 
-
-Besides names specified via the new `-assume-library LIB` option are
-also added to these names. `LIB` must be a library name and it does not 
-need to exist in the current `OCAMLPATH` when the command is invoked.
+of any library resolved in `OCAMLPATH` via `-require LIB|PATH.cma` and
+those specified via `-assume-library LIB` is embedded in the bytecode
+executable in a new section called `LIBS`.
 
 ## `ocamlopt` support
 
@@ -411,7 +415,6 @@ Besides names specified via the new `-assume-library LIB` option
 are also added to these names. `LIB` must be a library name and it does
 not need to exist in the current `OCAMLPATH` when the command is invoked.
   
-
 ## `ocamlobjinfo` support
 
 The following behaviours are added to `ocamlobjinfo`.
@@ -419,6 +422,8 @@ The following behaviours are added to `ocamlobjinfo`.
 * The regular `ocamlobjinfo` output on `cma`, `cmxa` and `cmxs` (if
   BDF library is available) is extended according to the current
   format to output the new `lib_requires` and `dynu_requires` field.s
+* The output on bytecode executable is extended to report the new 
+  `LIBS` section in an "Imported Libraries" section.
 
 ## `ocamldep`, `ocamldebug`, `ocamlmktop` and `ocamlmklib` support 
 
