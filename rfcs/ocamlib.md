@@ -287,7 +287,7 @@ type checking does not need to access library archives.
 
 ### Link phase 
 
-A repeateable and *ordered* `-require LIB|PATH.cma` option is
+A repeatable and *ordered* `-require LIB|PATH.cma` option is
 added to the link phase. For example:
 
 ```
@@ -317,7 +317,7 @@ the cli as bare objects.
 Support is provided to record which libraries are fully statically
 linked in bytecode executables.
 
-This happens whenever `-linkall` is specified. In this case the name
+This happens whenever `-linkall` flag is specified. In this case the name
 of any library resolved in `OCAMLPATH` via `-require LIB|PATH.cma` and
 those specified via `-assume-library LIB` is embedded in the bytecode
 executable in a new section called `LIBS`.
@@ -400,20 +400,23 @@ If `ARG` is:
 2. A direct path to an archive `PATH/ar.cmxa` file. The archive is added to 
    the link sequence. The `lib_requires` of `ar.cmxa` is read and 
    the dependencies resolved as is done in the previous point.
-
+   
+A repeateable and unordered `-assume-library LIB` option is added to
+the link phase. `LIB` must be a library name and it does not need to
+exist in the current `OCAMLPATH` when the command is invoked. Using
+this flag requires library name `LIB` and assumes it was already
+resolved. The user is in charge in providing its functionality on the
+cli as bare objects.
 
 ### Dynlink API support on `-linkall`
 
-Support is provided to record in native code executables which
-libraries are statically linked as a whole.
+Support is provided to record which libraries are fully statically
+linked in bytecode executables.
 
-This whenever `-linkall` is specified. In this case the name of any
-library resolved in `OCAMLPATH` via `-require LIB|PATH.cmxa` is
-embedded in the executable. 
-
-Besides names specified via the new `-assume-library LIB` option 
-are also added to these names. `LIB` must be a library name and it does
-not need to exist in the current `OCAMLPATH` when the command is invoked.
+This happens whenever the `-linkall` flag is specified. In this case
+the name of any library resolved in `OCAMLPATH` via `-require LIB|PATH.cma`
+and those specified via `-assume-library LIB` is embedded in the native
+code exectuable in a new `caml_imported_libs` symbol.
   
 ## `ocamlobjinfo` support
 
