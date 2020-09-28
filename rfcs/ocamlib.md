@@ -526,17 +526,24 @@ loaded.
 A call to `Dynlink.assume_library n` add library name `n` to the set of 
 loaded libraries names without loading anything.
 
-We also add the following functions to query the state of the program w.r.t. 
-to loaded libraries.
+Mirroring the existing support for compilation units, we also add the following 
+functions to query the state of the program w.r.t. to loaded libraries.
+
 ```
-Dynlink.loaded_libraries : unit -> string list 
-(** [Dynlink.loaded_libraries ()] is the 
-    the list of library names loaded in the program 
-    (including libraries already linked in the executable). *)
+val Dynlink.main_program_libraries : unit -> string list
+(** [main_program_libraries ()] is the list of library names statically linked
+    in the program. *)
+
+val Dynlink.public_dynamically_loaded_libraries : unit -> string list
+(** [public_dynamically_loaded_libraries ()] is the list of library names
+    that were dynamically loaded via {!require}. *)
+
+val Dynlink.all_libraries : unit -> string list
+(** [all_libraries ()] is the union of {!main_program_libraries} and
+    {!public_dynamically_loaded_libraries}. *)
     
-Dynlink.is_library_loaded : string -> bool
-(** [Dynlink.is_library_loaded l] is 
-    [List.mem l (Dynlink.loaded_libraries ())] *)
+val Dynlink.has_library : string -> bool
+(** [Dynlink.has_library l] is [List.mem l (Dynlink.all_libraries ())]. *)
 ```
 
 Keeping track of library names present in the executable and those
