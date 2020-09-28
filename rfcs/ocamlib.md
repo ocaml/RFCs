@@ -172,21 +172,26 @@ corresponding DLLs as:
 
 The following constraints are assumed to hold on a library directory.
 
-1. If a `M.cmx` has no `cmi` then the module is private to the library.
-2. If a `M.cmi` has no `M.cmx` and no implementation in the archives then 
-   it is an `mli`-only module.
-3. For any existing `M.cmx` the same `M.cmx` is present in the `.cmxa` archive. 
-4. All `lib.cma`, `lib.cmxa` and `lib.cmxs` (as available) contain the same
-   compilation units and the same library dependency specifications
-   (see below).
-5. A library is allowed to contain only `mli`-only modules or be
-   totally empty. In this case the library objects must still be
-   present but are empty. They are allowed to have library dependency
-   specifications (see below). (Empty archives did pose problems
-   at a certain point but it seem this is mostly fixed, 
-   see [#9011](https://github.com/ocaml/ocaml/pull/9011), 
-   [#6550](https://github.com/ocaml/ocaml/issues/6550) and
-   [#1094](https://github.com/ocaml/ocaml/pull/1094)).
+1. If a `m.cmx` has no `m.cmi` then the module is private to the library.
+2. If a `m.cmi` has no `m.cmx` and no implementation in the archives then it
+   is an `mli`-only module.
+3. For any existing `m.cmx` the same `m.cmx` must be present in the `lib.cmxa` 
+   archive.
+4. If there is a `m.cmx` file there must be a `lib.cmxa`.
+5. If there is a `lib.cmxa` there must be a `lib.a` unless `lib.cmxa`
+   is empty (since 4.12).
+6. FIXME discuss. All `lib.{cma,cmxa,cmxs}` files (as available) contain the 
+   same compilation units.
+7. FIXME discuss. All `lib.{cma,cmxa,cmxs}` files (as available) contain the 
+   same dependency specifications.
+8. Empty archives are allowed. They can 
+   contain library dependency specifications which are used at link time.
+9. A missing library archive means that the library is not available for the 
+   given code backend, failures are reported on usage at link time. This 
+   entails that a library made from `mli`-only modules must install empty 
+   `lib.{cma,cmxa,cmxs}` files in its library directory so that the library
+   can be used during the compilation and link phase without users needing 
+   to know it has no implementation.
 
 ## Library dependency specifications
 
