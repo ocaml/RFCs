@@ -459,6 +459,8 @@ The following behaviours are added to `ocamlobjinfo`.
   format to output the new `lib_requires` and `dynu_requires` field.s
 * The output on bytecode executable is extended to report the new 
   `LIBS` section in an "Imported Libraries" section.
+* A new option `-requires` is added that only prints libraries required 
+  by `cma`, `cmxa` and `cmxs` objects, one per line.
 
 ## `ocamldep`, `ocamldebug`, `ocamlmktop` and `ocamlmklib` support 
 
