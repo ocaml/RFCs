@@ -232,6 +232,33 @@ those of the executable without double linking.
 
 ## Command line interface commonalites 
 
+### Support for `OCAMLPATH` default value 
+
+A new configuration variable `DEFAULT_OCAMLPATH` is added to OCaml's
+`configure` (defaults to empty). This value is used in case the 
+`OCAMLPATH` environment variable is undefined.
+
+For example with: 
+```
+./configure DEFAULT_OCAMLPATH=/usr/lib/ocaml:/usr/local/lib/ocaml
+```
+the default `OCAMLPATH` value, when the variable is undefined, will be: 
+```
+/usr/lib/ocaml:/usr/local/lib/ocaml
+```
+A new option `-ocamlpath` is added to `ocaml{c,opt}` which simply 
+prints the contents of the `OCAMLPATH` environment variable or the 
+default value if undefined.
+
+This allows end user to extend the `OCAMLPATH` with for example:
+```
+export OCAMLPATH=~/.local/lib/ocaml:$(ocamlc -ocamlpath)
+```
+With this system, reading the value `OCAMLPATH` variable, if defined, always 
+gives a total picture of what is going on.
+
+FIXME Ask system packagers if that works for them.
+
 ### Support for `OCAMLPATH` extension
 
 Every tool from the toolchain that interprets the `OCAMLPATH`
@@ -680,18 +707,6 @@ ocamlopt -L libs -require b exec.ml
 ```
 
 ## Unresolved issues 
-
-### OCAMLPATH initial value
-
-At the moment the proposal has no default value for the `OCAMLPATH`.
-This means that without specifying any `OCAMLPATH` only the stdlib is
-available for compiling and by definition any `-require LIB` will
-fail for any library name `LIB`.
-
-It is expected that system itegrators will setup an appropriate
-`OCAMLPATH` when needed (e.g. on `eval $(opam env)`) and according to
-the install structure they choose. Whether a more complex mecanism is
-needed will be discussed in due time with system integrators.
 
 ### Compilation phase includes
 
