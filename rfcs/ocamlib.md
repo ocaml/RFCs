@@ -755,17 +755,122 @@ problem with 2. is that it breaks the idea that the compilation phase
 need not be aware of the dependencies of a library which are currently
 only stored in library archives.
 
-
 ## Implementation 
 
-Work on the proposal has started thanks to a grant of the 
+Work on the proposal is ongoing thanks to a grant of the 
 [OCaml software foundation](http://ocaml-sf.org/).
 
 ### OCaml status
 
+An OCaml implementation of the RFC is available and can be used with:
+
+```
+opam switch create ocaml-ll --empty
+opam pin add ocaml-variants.4.12.0+ll git+https://github.com/dbuenzli/ocaml#ll-v2
+```
+
+For interested reviewers, 
+[the patches](https://github.com/ocaml/ocaml/compare/trunk...dbuenzli:ll-v2) 
+are meant to be read individually and in sequence.
+
+A draft for a manual section about the library convention can be found
+[here](https://github.com/dbuenzli/ocaml-lltest/blob/master/manual.mdy).
+
+A bit of testing can be found in [this
+repository](https://github.com/dbuenzli/ocaml-lltest/). Feel free to
+open issues you may find there.
+
+The following notes indicate what is *not* implemented according the
+RFC, a few known problems and work that remains to be done.
+
+* RFC clarification. At the moment there are not provisions to dynamically 
+  tweak the OCAMLPATH in the toplevel (like the `#directory` has for `-I`). 
+  Should we have something ? 
+* RFC clarification. The current implementation adds the directory of any 
+  archive as a `-L` to the C linker (see point 7 of the previous iteration)
+  in `{Byte,Asm}link` this is not mentioned in the RFC above. It should be,
+  along with the rationale.
+* RFC clarification. Some of the library directory 
+  [constraints](#semantics-and-integrity-constraints)
+  should be discussed (6 and 7). Namely uniformity of dependencies 
+  and implementation in different backend archives. Maybe we could relax
+  that, I think that uniformity of *API* (i.e. implementation with a .cmi file)
+  across backends is important, not implementations and/or dependencies.
+* RFC clarification. Support for the 
+  [default `OCAMLPATH` value](#support-for-ocamlpath-default-value) value 
+  should be discussed, notably with system packagers.
+* Implementation bug. The current implementation triggers infinite loops in 
+  case of recursively dependent libraries in `Dynlink.requires` and 
+  `#require`. It is not difficult to fix; in contrast to `Asmlink` and 
+  `Bytelink`,  we only update the seen libraries after we are sure it 
+  successfully loaded. We need to carry a separate seen libraries for 
+  the current "require" load.
+* Implementation enhancement. The current implementation is inconsistant 
+  about using `lib[s]` and `librar{y,ies}` this should be uniformized. For 
+  now public identifiers consistently use the latter, we should decide on one
+  (e.g. `-assume-lib` or `-assume-library`?).
+* Implementation enhancement. Now that we have @nojb's `Binutils`,
+  `ocamlobjinfo` on native code executables could report the data of
+  `caml_imported_libs` and `caml_globals_map`. Like `ocamlobjinfo`
+  does with `LIBS` on bytecode executables (we get a bit less clear
+  error checking).
+* Implementation RFC deviation. Requires and ordering. The RFC above has it 
+  that the relative order
+  of `-require`, `-I` and positional arguments should be respected
+  modulo `-require` dependency sorting at link time. No good way was
+  found to do this in the code base without making it worse than it
+  already is. In the current implementation `-require` include effects
+  are put after all `-I` arguments and before positional
+  arguments. Incidentally this is what `ocamlfind` does. However for
+  positional arguments it doesn't work for 1) the idea of using
+  `-require FILE` to request resolution of `FILE` dependencies 2)
+  for using `-assume-library a implements_a.cma
+  -require b` for replacing the dependency `a` of `b` since the object
+  resolved by `-require b` gets placed before `implements_a.cma` and
+  link fails. Note that this is a cli user interface problem, the actual 
+  linker implementation supports the interleaving correctly.
+* Implementation RFC deviation. Archive creation, transfer of 
+  `lib_requires` information when an archive
+  is created (`-a`) from another one (a cma from cmas, cmxs from cmxas). 
+  This is still a bit unclear in the RFC above. It was not spelled out but 
+  the idea was  that you'd only transfer if `--require FILE` was put on 
+  the `-a` invocation (previously we had the `-noautoliblink` to prevent 
+  transfer). But the preceeding point makes that problematic. For now we 
+  unconditionally transfer `lib_requires` of the arguments to the new 
+  archive (because most build system out there only use this workflow 
+  for creating a `.cmxs` matching a `.cmxa`). Depending on what happens 
+  with the preceding point we still may want a mecanism to prevent 
+  the transfer. (e.g. `-assume-library` could be used to remove 
+  specific mentions in the final result).
+* Implementation TODO. Manpages must be updated.
+* Implementation TODO. Beyond this [new manual section](https://github.com/dbuenzli/ocaml-lltest/blob/master/manual.md), the narrative about libraries should be integrated  in manual sections about individual tools.
+* Implementation TODO. Test suite. The tests
+  [here](https://github.com/dbuenzli/ocaml-lltest) should be integrated
+  into the compiler test suite, as cram tests. (So that e.g. *stable* topo 
+  sorts are tested).
+* Implementation TODO. There is no support for `OCAMLPARAM`. Should there 
+  be one ? 
+
+## Old supporting work
+
+### OCAMLPATH
+
+There is a [PR](https://github.com/ocaml/ocaml/pull/8946) for making
+`OCAMLPATH` meaningful to the OCaml toolchain. For now its only effect
+is to redefine the `-I +DIR` notation so that distributions can start
+reshuffling their install structure to make it easier to extend a
+system OCaml package install prefix with an opam package install
+prefix.
+
+
+### OCaml status RFC v1
+
+These are the note the for the [previous
+iteration](https://github.com/ocaml/RFCs/pull/7) of the RFC.
+
 Partial implementation for the compiler support is available
 [here](https://github.com/ocaml/ocaml/compare/trunk...dbuenzli:ll)
-for the previous iteration of this RFC.
+
 
 For interested reviewers, the patches are meant to be read
 individually and in sequence.
@@ -939,15 +1044,6 @@ was proposed above.
    good idea or not. 
 15. This implementation has no support for `OCAMLPARAM`. 
 
-## Old supporting work
 
-### OCAMLPATH
-
-There is a [PR](https://github.com/ocaml/ocaml/pull/8946) for making
-`OCAMLPATH` meaningful to the OCaml toolchain. For now its only effect
-is to redefine the `-I +DIR` notation so that distributions can start
-reshuffling their install structure to make it easier to extend a
-system OCaml package install prefix with an opam package install
-prefix.
 
 
