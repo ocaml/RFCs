@@ -523,7 +523,6 @@ A new `#require "ARG"` directive is added to the toplevel. If `ARG` is
 2. A direct path to an archive `PATH/ar.cma` file. `PATH` is added 
    to the include directories.
        
-
 Note that in the above if any of the names resolved in the `OCAMLPATH` is 
 already embedded in the `ocaml` or `ocamlnat` executable, the names are
 not resolved (see `ocamlc` and `ocamlopt` Dynlink API support).
@@ -559,6 +558,21 @@ loaded.
 
 A call to `Dynlink.assume_library n` add library name `n` to the set of 
 loaded libraries names without loading anything.
+
+We also provide the following two functions to let client handle their 
+own `OCAMLPATH`-like variable.
+
+```
+val Dynlink.default_ocamlpath : string list
+(** [default_ocamlpath] is the value of the ocamlpath that has been
+    set at OCaml configuration time. *)
+
+val Dynlink.ocamlpath_of_string : string -> string list
+(** [ocamlpath_of_string s] parses [s] into a list of directories by
+    following the OS convention for [PATH]-like variables. This means they
+    are colon ':' (semi-colon ';' if {!Sys.win32}) separated paths. Empty
+    paths are allowed and discarded. *)
+```
 
 Mirroring the existing support for compilation units, we also add the following 
 functions to query the state of the program w.r.t. to loaded libraries.
