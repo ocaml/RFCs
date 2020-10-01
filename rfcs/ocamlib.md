@@ -783,38 +783,38 @@ open issues you may find there.
 The following notes indicate what is *not* implemented according the
 RFC, a few known problems and work that remains to be done.
 
-* RFC clarification. At the moment there are not provisions to dynamically 
+1. RFC clarification. At the moment there are not provisions to dynamically 
   tweak the OCAMLPATH in the toplevel (like the `#directory` has for `-I`). 
   Should we have something ? 
-* RFC clarification. The current implementation adds the directory of any 
+2. RFC clarification. The current implementation adds the directory of any 
   archive as a `-L` to the C linker (see point 7 of the previous iteration)
   in `{Byte,Asm}link` this is not mentioned in the RFC above. It should be,
   along with the rationale.
-* RFC clarification. Some of the library directory 
+3. RFC clarification. Some of the library directory 
   [constraints](#semantics-and-integrity-constraints)
   should be discussed (6 and 7). Namely uniformity of dependencies 
   and implementation in different backend archives. Maybe we could relax
   that, I think that uniformity of *API* (i.e. implementation with a .cmi file)
   across backends is important, not implementations and/or dependencies.
-* RFC clarification. Support for the 
+4. RFC clarification. Support for the 
   [default `OCAMLPATH` value](#support-for-ocamlpath-default-value) value 
   should be discussed, notably with system packagers.
-* Implementation bug. The current implementation triggers infinite loops in 
+5. Implementation bug. The current implementation triggers infinite loops in 
   case of recursively dependent libraries in `Dynlink.requires` and 
   `#require`. It is not difficult to fix; in contrast to `Asmlink` and 
   `Bytelink`,  we only update the seen libraries after we are sure it 
   successfully loaded. We need to carry a separate seen libraries for 
   the current "require" load.
-* Implementation enhancement. The current implementation is inconsistant 
+6. Implementation enhancement. The current implementation is inconsistant 
   about using `lib[s]` and `librar{y,ies}` this should be uniformized. For 
   now public identifiers consistently use the latter, we should decide on one
   (e.g. `-assume-lib` or `-assume-library`?).
-* Implementation enhancement. Now that we have @nojb's `Binutils`,
+7. Implementation enhancement. Now that we have @nojb's `Binutils`,
   `ocamlobjinfo` on native code executables could report the data of
   `caml_imported_libs` and `caml_globals_map`. Like `ocamlobjinfo`
   does with `LIBS` on bytecode executables (we get a bit less clear
   error checking).
-* Implementation RFC deviation. Requires and ordering. The RFC above has it 
+8. Implementation RFC deviation. Requires and ordering. The RFC above has it 
   that the relative order
   of `-require`, `-I` and positional arguments should be respected
   modulo `-require` dependency sorting at link time. No good way was
@@ -829,7 +829,7 @@ RFC, a few known problems and work that remains to be done.
   resolved by `-require b` gets placed before `implements_a.cma` and
   link fails. Note that this is a cli user interface problem, the actual 
   linker implementation supports the interleaving correctly.
-* Implementation RFC deviation. Archive creation, transfer of 
+9. Implementation RFC deviation. Archive creation, transfer of 
   `lib_requires` information when an archive
   is created (`-a`) from another one (a cma from cmas, cmxs from cmxas). 
   This is still a bit unclear in the RFC above. It was not spelled out but 
@@ -842,14 +842,14 @@ RFC, a few known problems and work that remains to be done.
   with the preceding point we still may want a mecanism to prevent 
   the transfer. (e.g. `-assume-library` could be used to remove 
   specific mentions in the final result).
-* Implementation TODO. Manpages must be updated.
-* Implementation TODO. Beyond this [new manual section](https://github.com/dbuenzli/ocaml-lltest/blob/master/manual.md), the narrative about libraries should be integrated  in manual sections about individual tools.
-* Implementation TODO. Test suite. The tests
+10. Implementation TODO. Manpages must be updated.
+11. Implementation TODO. Beyond this [new manual section](https://github.com/dbuenzli/ocaml-lltest/blob/master/manual.md), the narrative about libraries should be integrated  in manual sections about individual tools.
+12. Implementation TODO. Test suite. The tests
   [here](https://github.com/dbuenzli/ocaml-lltest) should be integrated
   into the compiler test suite, as cram tests. (So that e.g. *stable* topo 
   sorts are tested).
-* Implementation TODO. There is no support for `OCAMLPARAM`. Should there 
-  be one ? 
+13. Implementation TODO. There is no support for `OCAMLPARAM`. Should there be 
+    one ? 
 
 ## Old supporting work
 
