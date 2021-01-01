@@ -27,8 +27,7 @@ The proposed types are below.
 type t =
   | Object of (string * t) list
   | Bool of bool
-  | Float of float
-  | Int of int
+  | Number of string
   | Array of t list
   | Null
   | String of string
