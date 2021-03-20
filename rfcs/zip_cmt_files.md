@@ -17,7 +17,6 @@ for the content of the opam `lib/<project>` directory:
 | lwt | 11M | 8.1M |
 | camomille | 12M | 8.5M |
 | oseq | 1.1M | 820k |
-| --- | --- | --- |
 
 The proposal is thus to bundle zlib (some C implementation of it, which weights as little
 as 98kb on my system as a .so file) in the compiler, and always compress cmt/cmti files
