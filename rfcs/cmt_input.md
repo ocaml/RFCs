@@ -7,14 +7,14 @@ them.
 The first request is to type check compilation units and produce `.cmt` files:
 
 ```
-$ ocamlc -c foo.ml -o foo.cmt
+$ ocamlc -c foo.ml -output-cmt
 ```
 
 The second request is to take `.cmt` files as input to produce object files:
 
 ```
-$ ocamlc -c foo.cmt -o foo.cmo
-$ ocamlopt -c foo.cmt -o foo.cmx
+$ ocamlc -c foo.cmt
+$ ocamlopt -c foo.cmt
 ```
 
 How does this help? The motivation is mainly to simplify some rough edges of
