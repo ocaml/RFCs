@@ -39,9 +39,9 @@ responsible for these errors and such warnings would only appear once.
 
 ## Speed up compilation when type checking is a bottle neck
 
-This likely doesn't occur very often, but there are cases where type checking is
-slow. This proposal should improve compilation speed in such projects, because
-type checking will be done only once per compilation unit.
+There are cases where type checking is slow. This proposal should improve
+compilation speed in such projects, because type checking will be done only once
+per compilation unit.
 
 ## More flexible build rules for users
 
