@@ -33,7 +33,7 @@ The [pringo](https://github.com/xavierleroy/pringo/) library provides two splitt
 | Name     | numeric type | speed wrt. Random | pure OCaml   | secure            | when to reseed?  |
 |----------|--------------|-------------------|--------------|-------------------|------------------|
 | Random   | int          | =                 | yes          | no                | ?                |
-| SplitMix | int64        | slightly faster   | no (C stubs) | no                | after 2^30 draws | 
+| SplitMix | int64        | slightly faster   | no (C stubs) | no                | after 2^32 draws |
 | ChaCha   | int32        | slightly slower   | no (C stubs) | yes (weak crypto) | after 2^64 draws |
 
 To give a sense of the performance difference, on my machine, on a micro-benchmarking drawing numbers in a tight loop (`make benchmarks` from the pringo directory):
@@ -87,17 +87,16 @@ The requirements discussed in the current version of the RFC are:
 
 Here is a summary of what we understand to be the consensus so far (I'll edit this part of the RFC as discussion progresses):
 
-- pure-OCaml: yes. 
+- pure-OCaml: yes.
 
   A pure-OCaml implementation makes people's life simpler would be strongly preferable; we should port SplitMix and Chacha and re-run benchmarks.
 
 - performance: not important, but check that js_of_ocaml does okay.
 
   A small performance hits are not very important for the standard Random PRNG, so a reasonable decrease (for everyone or just js_of_ocaml) would be perfectly acceptable.
-  
+
   We should still benchmark under js_of_ocaml to have an idea of the performance (once we have pure-OCaml versions). It's bad if some parts of OCaml programs suddenly become much slower there.
 
 - Having a crypto-secure PRNG is not part of our requirement -- Random is not secure in that sense.
 
-- Having to reseed SplitMix every 2^30 draws may be a problem in practice -- loops running 2^30 iterations are perfectly reasonable thse days. All other things being equal, ChaCha should be preferred.
-
+- Having to reseed SplitMix every 2^32 draws may be a problem in practice -- loops running 2^32 iterations are perfectly reasonable these days. All other things being equal, ChaCha should be preferred.
