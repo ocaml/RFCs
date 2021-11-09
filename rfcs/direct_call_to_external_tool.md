@@ -26,6 +26,8 @@ cons:
   - We can add -direct_pp,-direct_ppx so we don't break any projects. All good citizens that use dune will get a boost benefit freely.
 - You loose usage of %COMSPEC% on windows (but is it still needed ?)
   - We can still read that variable and act in consequence
+- We break user that rely on this implementation detail and pass multiple opt to -ccopt/-cclib instead of repeating it.
+  - Workaround either split on space and/or implement word splitting that respect quoting.
 
 cons without workaround:
 - Unix will not be optional anymore (or maybe at least the creation part)
