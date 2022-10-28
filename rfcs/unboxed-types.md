@@ -1,5 +1,23 @@
 # Unboxed types in OCaml
 
+This proposal is discussed at this [pull request](https://github.com/ocaml/RFCs/pull/34).
+
+OCaml currently has two attributes that this proposal may easily be confused
+with:
+
+* We can mark arguments to external calls as `[@unboxed]`, as [documented in the
+  manual](https://v2.ocaml.org/manual/intfc.html#s%3AC-cheaper-call). This
+  proposal essentially takes this idea and expands it to be usable within OCaml
+  itself, instead of just at the foreign function interface boundary.
+* We can mark some types as `[@@unboxed]`, as briefly described in a bullet
+  point in [this manual
+  section](https://v2.ocaml.org/manual/attributes.html#ss:builtin-attributes).
+  This attribute, applicable to a type holding one field of payload (either a
+  one-field record or a one-constructor variant with one field), means that no
+  extra box is allocated when building values of that type. It is notionally
+  separate from this proposal, though there is an interaction: see the section
+  mentioning `[@@unboxed]` in its title.
+
 ## Motivation
 
 Suppose you define this type in OCaml:
@@ -174,6 +192,35 @@ binary operators) live in a new layout namespace (distinct from all existing
 namespaces) and are in scope in the initial environment. Though this proposal
 does not introduce syntax to do so, we can imagine constructs defining new names
 in the layout namespace that could shadow these existing names.
+
+### Layouts and the `[@@unboxed]` attribute
+
+Because a layout describes how a type is stored in memory and passed to and from
+functions, an `[@@unboxed]` type must have the same layout as its field
+type. That is, in both of the following declarations, `outer` is assigned the
+same layout as `inner`:
+
+```ocaml
+type outer = { f : inner } [@@unboxed]
+type outer = K of inner [@@unboxed]
+```
+
+Without the `[@@unboxed]` attribute, both `outer`s would be `value`s. It is
+possible that recursion prevents us from finding the layout of the right-hand
+side:
+
+```ocaml
+type loopy = { f : loopy } [@@unboxed]
+```
+
+In this case, we default the layout of `loopy` to `value`, although a programmer
+can also write a layout annotation to choose a different layout, as follows:
+
+```ocaml
+type immediate_loopy : immediate = { f : immediate_loopy } [@@unboxed]
+```
+
+Both `loopy` and `immediate_loopy` are uninhabited.
 
 ## Unboxed types and records with unboxed fields
 
@@ -562,8 +609,8 @@ an unboxed and boxed version of an abstract type, you can with
 
 ```ocaml
 module M : sig
-  type unboxed_t
-  type t = box unboxed_t
+  type unboxed_t : value * value
+  type t = unboxed_t box
 end = struct
   type t = { x : int32; y : int32 }
   type unboxed_t = #t
