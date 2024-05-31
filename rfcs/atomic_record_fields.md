@@ -115,9 +115,9 @@ Another idea would be to add a magic way to see the field `state` as
 an `Atomic.t` value. But this is deeply incompatible with the OCaml
 memory representation, which has no support for internal pointers:
 except for the very first record field there is no way to expose
-a pointer to a specific field as a valid atomic value, exception by
+a pointer to a specific field as a valid atomic value, except by
 copying the value into a new atomic, which has a completely different
-(and useless) semantics.
+(and useless and inefficient) semantics.
 
 ## The proposal: phantom-typed first-class atomic fields
 
@@ -128,15 +128,16 @@ fields, we propose to add:
   `'a` within a record of type `'r`. Its representation is just an
   integer, the offset of the field within the record structure.
   
-2. Atomic operations on `('r, 'a) t` in this new Atomic.Field module,
-   which mimick/duplicate the operations on `Atomic.t`. 
+2. Atomic operations taking both a `'r` and a `('r, 'a) t` in this new
+   Atomic.Field module, which mimick/duplicate the operations on
+   `Atomic.t`.
   
-3. A single builtin-in construct to built `('r, 'a) Atomic.Field.t`
+3. A single builtin-in construct to construct `('r, 'a) Atomic.Field.t`
    values out of atomic record field names: `[%atomic.field foo]`
-   
-For example, if we have `type 'a t = { atomic state : 'a state }`,
+
+For example, if we have `type 'a t = { atomic mutable state : 'a st }`,
 then `[%atomic.field state]` is a polymorphic constant of type
-`('a t, 'a state) Atomic.Field.t`.
+`('a t, 'a st) Atomic.Field.t`.
 
 The `Atomic.Field` submodule looks like this:
 
@@ -150,8 +151,8 @@ module Field = sig
 end
 ```
 
-The library functions would be implemented as primitives, and they can
-be implemented efficiently with this interface.
+The library functions would be implemented as primitives. They can be
+implemented efficiently with this interface.
 
 
 ## Advanced topics
@@ -162,7 +163,7 @@ One remaining design question is: if `[%atomic.field foo]` refers to
 the field name `foo` at a type in the context, how can we disambiguate
 if there are different record types with such a field in scope? One
 can use module prefixing `[%atomic.field M.foo]`, but even this may be
-ambiguous.
+ambiguous when a single module contains several record declarations.
 
 Broadly our intuition is that this should be checkable like a field
 access, using propagated type information. In particular, it should
@@ -172,9 +173,9 @@ always be possible to write explicitly:
 It may turn out necessary in practice to support a more concise syntax
 such as `[%atomic.field (M.foo : my_record -> _)]` where the type
 annotation must be of the form `<record type> -> <element type>`. But
-we would suggest trying without it first.
+we would suggest trying first without this extra notation.
 
-### Bonus fetaure: atomic arrays
+### Bonus feature: atomic arrays
 
 We can expose atomic arrays with the same mechanism: a builtin type
 `'a Atomic.Array.t`, with a primitive function to build an index from
