@@ -62,10 +62,29 @@ a type path.
 
 In other words, `M(type <m: int>).t` should be rejected.
 
+### Type application must be compiled as an empty structure
+
+If we could avoid giving the type arguments at runtime for modules like with
+functions we would have soundness issues.
+
+The following example show why it is important to preserve the information of
+application all the way to binary code.
+
+```ocaml
+module F (type a) = struct
+    let r : a option ref = ref None
+end
+
+let r1 = let module M = F(type int) in M.r
+let r2 = let module M = F(type float) in M.r
+```
+
+If `F(type _)` does not launch any computation then `r1` and `r2` will be the
+same reference but with incompatible types.
+
 ## Possible extensions
 
 This feature could be extended with other similar patterns to be a bit more expressive.
 
 - Implement the same feature with module types,
 - Allow using parametric types in paths (for example `int list`).
-
