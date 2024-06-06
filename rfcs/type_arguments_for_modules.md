@@ -9,11 +9,76 @@ to have a module containing only a single type by directly writing the type.
 In those cases we currently force the user to define a module containing that
 type.
 
+## Proposed change
+
+The idea is to extend the syntax of the module language with a new argument to
+functors :
+
+```ocaml
+module M (type a) = ...
+
+module M2 = functor (type a) -> ...
+module type S = functor (type a) -> ...
+```
+
+and a new construction for applications.
+
+```ocaml
+module M3 = M(type [`A | `B])
+
+let f (x : M(type int).t) = x
+```
+
 ## Use cases
 
 The motivation for this feature came from people working on modular explicits 
 and modular implicits. However, this feature will also benefit OCaml even
 without modular implicits.
+
+### Use cases in current OCaml
+
+Is some cases a parametric module requires as argument a type without any
+structure attached to it. This is useful when we just want to store the type
+but never look into it. Cases where this pattern occurs exists in the OCaml code
+base.
+
+#### State monad in algebraic effects tutorial
+
+For example when implementing a state monad such as the
+one in the example available at :
+https://github.com/ocaml-multicore/ocaml-effects-tutorial/blob/998376931b7fdaed5d54cb96b39b301b993ba995/sources/state2.ml#L13-L40.
+
+```ocaml
+module type STATE = sig
+  type t
+  val put     : t -> unit
+  val get     : unit -> t
+  val history : unit -> t list
+  val run : (unit -> unit) -> init:t -> unit
+end
+
+module State (S : sig type t end) : STATE with type t = S.t = struct
+
+  type t = S.t
+
+  type _ Effect.t += Get : t Effect.t
+
+  let get () = perform Get
+
+  let put v = failwith "not implemented"
+
+  let history () = failwith "not implemented"
+
+  let run f ~init = failwith "not implemented"
+end
+```
+
+#### In ocamlgraph
+
+Another example of usage that feature in the OCaml would be in
+[ocamlgraph](https://github.com/backtracking/ocamlgraph). Where some parametric
+modules such as `Imperative.Graph.AbstractLabeled` requires a module containing
+a single type as argument (here the types for vertex labels).
 
 ### Modular explicits/implicits
 
@@ -56,74 +121,6 @@ define a sufficient amount of modules to access any possible types. This lead
 Patrick Reader and Daniel Vlasits to write a whole file of modules containing
 only a type field :
 https://github.com/modular-implicits/imp/blob/master/lib/any.mli.
-
-
-
-### Use cases in current OCaml
-
-Is some cases a parametric module requires as argument a type without any
-structure attached to it. This is useful when we just want to store the type
-but never look into it. Cases where this pattern occurs exists in the OCaml code
-base.
-
-
-#### State monad in algebraic effects tutorial
-
-For example when implementing a state monad such as the
-one in the example available at :
-https://github.com/ocaml-multicore/ocaml-effects-tutorial/blob/998376931b7fdaed5d54cb96b39b301b993ba995/sources/state2.ml#L13-L40.
-
-```ocaml
-module type STATE = sig
-  type t
-  val put     : t -> unit
-  val get     : unit -> t
-  val history : unit -> t list
-  val run : (unit -> unit) -> init:t -> unit
-end
-
-module State (S : sig type t end) : STATE with type t = S.t = struct
-
-  type t = S.t
-
-  type _ Effect.t += Get : t Effect.t
-
-  let get () = perform Get
-
-  let put v = failwith "not implemented"
-
-  let history () = failwith "not implemented"
-
-  let run f ~init = failwith "not implemented"
-end
-```
-
-#### In ocamlgraph
-
-Another example of usage that feature in the OCaml would be in
-[ocamlgraph](https://github.com/backtracking/ocamlgraph). Where some parametric
-modules such as `Imperative.Graph.AbstractLabeled` requires a module containing
-a single type as argument (here the types for vertex labels).
-
-## Proposed change
-
-The idea is to extend the syntax of the module language with a new argument to
-functors :
-
-```ocaml
-module M (type a) = ...
-
-module M2 = functor (type a) -> ...
-module type S = functor (type a) -> ...
-```
-
-and a new construction for applications.
-
-```ocaml
-module M3 = M(type [`A | `B])
-
-let f (x : M(type int).t) = x
-```
 
 ## Proof of concept
 
