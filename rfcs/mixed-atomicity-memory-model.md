@@ -23,11 +23,11 @@ and @gmevel, @jhjourdan and @fpottier as the authors of the Cosmo separation log
 
 ## A detailed reminder on the current operational memory model
 
-In the current operational semantics for the memory-model, there are separate categories for atomic variables `A` and non-atomic variables `a`. The global store `S` stores a value `x` for each atomic location `A`, but for non-atomic locations `a` it stores a *history* `H`, a set of pairs `(t, x)`, indicating that a write `a := x` happened at timestamp `t`.
+In the current operational semantics for the memory-model, there are separate categories for atomic variables `A` and non-atomic variables `a`. The global store `S` stores a value `x` for each atomic location `A`, but for non-atomic locations `a` it stores a *history* `H`, a map from locations to values such that `H(t) = x` when a write `a := x` happened at timestamp `t`.
 
 A given thread has observed some writes to each non-atomic location `a`, but not necessarily all writes. When the thread reads from `a`, it reads non-determinstically the last-write value that it has observed, or any value more recent than that (written at a later timestamp). We call a *frontier* `F` a mapping from locations to timestamps that represents a time-of-last-observed-write for each location. Each thread has a frontier.
 
-Finally, the global store maps each atomic location `A` to a value `x`, but also to a fronter `Fᴬ`, that represents information propagated by threads that have written into this location. When a thread reads from a location `A`, it updates its own frontier `F` with the frontier of the lcoation `Fᴬ` -- its frontier becomes the maximum of the timestamps, `F ⊔ Fᴬ`. When a thread *writes* to an atomic location, it updates its own frontier to become `F ⊔ Fᴬ`, but it also updates the atomic location's frontier in the same way.
+Finally, the global store maps each atomic location `A` to a value `x`, but also to a fronter `Fᴬ`, that represents information propagated by threads that have written into this location. When a thread reads from a location `A`, it updates its own frontier `F` with the frontier of the location `Fᴬ` -- its frontier becomes the maximum of the timestamps, `F ⊔ Fᴬ`. When a thread *writes* to an atomic location, it updates its own frontier to become `F ⊔ Fᴬ`, but it also updates the atomic location's frontier in the same way.
 
 In LaTeX-turned-Unicode, this gives:
 
@@ -100,7 +100,7 @@ Frontier F := l ↦ t
 Program  P := i ↦ (F, e)
 ```
 
-Before the store type was `(a ↦ H ⊎ A ↦ (F, x))`: non-atomic locations were not bound to a single value but to a fuzzier history `H`, and atomic locations were bound to a frontier in addition to a value, which expresses synchronization / information transfer. We now get the worst of both worlds, `(l ↦ (F, H))`: we carry a frontier `F` for synchronization, which is the frontier of all past atomic writers, and we carry a history `H` that provides non-deterministic non-atomic reads.
+Before the store type was `(a ↦ H ⊎ A ↦ (F, x))`: non-atomic locations were not bound to a single value but to a fuzzier history `H`, and atomic locations were bound to a frontier in addition to a value, which expresses synchronization / information transfer. We now get the worst of both worlds, `(l ↦ (F, H))`: we carry a frontier `F` for synchronization, which is the frontier of all past atomic writers, and we carry a history `H` that provides non-deterministic reads after non-atomic writes.
 
 ### Minimal change
 
