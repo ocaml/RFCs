@@ -33,8 +33,8 @@ In LaTeX-turned-Unicode, this gives:
 
 ```
 location              l
-atomic location       a
-non-atomic location   A
+atomic location       A
+non-atomic location   a
 value                 x
 timestamp             t ∈ Q (rational number)
 
@@ -47,7 +47,7 @@ transition  ϕ := read x | write x
 
 e ~<l:ϕ>→ e'    S(l); F —<l:ϕ>→ C'; F'
 ———————————————————————————————————————————————— Step
-<S, P || (F, e)]> —→ <S[l ↦ C'], P || (F', e')>
+<S, P || (F, e)> —→ <S[l ↦ C'], P || (F', e')>
 ```
 
 This first judgment above is a machine-reduction rule, it is the rule for memory operation. (There is another rule for silent reductions which I omitted, see the paper.) If a thread has a frontier `F` and its code is `e`, and `e` steps into `e'` by performing a memory operation `ϕ`, the global store is transformed by the same memory operation `ϕ`. The update of the global store captures the memory model.
@@ -110,7 +110,7 @@ In particular, non-atomic accesses do not interact with the frontier `Fˡ` at th
 ```
 e ~<l:ϕ>→ e'    S(l); F —<l:ϕ>→ C'; F'
 ———————————————————————————————————————————————
-<S, P || (F, e)]> —→ <S[l ↦ C'], P || (F', e')>
+<S, P || (F, e)> —→ <S[l ↦ C'], P || (F', e')>
 
 F(l) ≤ t      t ∈ dom(H)
 ——————————————————————————————————————————— Read-NA
@@ -133,7 +133,7 @@ F' := Fˡ ⊔ F   F'(l) ≤ t    t ∈ dom(H)
 
 F' = (Fˡ ⊔ F)   F'(l) < t  t ∉ dom(H)  F" := F'[l ↦ t]
 ——————————————————————————————————————————————————————— Write-AT
-(Fˡ, H); F ——<A:write-at x>—→ (F", H[t ↦ x]); F"
+(Fˡ, H); F ——<l:write-at x>—→ (F", H[t ↦ x]); F"
 ```
 
 ### Factored rules
@@ -143,7 +143,7 @@ Now that the rules are very similar, it is possible to present a factorized vers
 ```
 e ~<l:ϕ at?>→ e'    S(l); F —<l:ϕ at?>→ C'; F'
 ———————————————————————————————————————————————
-<S, P || (F, e)]> —→ <S[l ↦ C'], P || (F', e')>
+<S, P || (F, e)> —→ <S[l ↦ C'], P || (F', e')>
 
 F' := if at? then Fˡ ⊔ F else F
 F'(l) ≤ t    t ∈ dom(H)
