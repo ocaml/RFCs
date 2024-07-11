@@ -46,8 +46,8 @@ end
 ```
 
 We can only rely on the compiler to pick the unboxed C call (when applicable) for
-`Float.( % )`, and not for `Float.O.( % )`, because it is not exposed as a primitive.
-Thus, users may prefer to explicitly write out the entire `external` description for every
+`Float.modfp`, and not for `Float.( % )`, because it is not exposed as a primitive. Thus,
+users may prefer to explicitly write out the entire `external` description for every
 binding, like so:
 
 ```ocaml
