@@ -37,10 +37,10 @@ destroying any additional information. Consider a module such as:
 
 ```ocaml
 module Float : sig
-  external modfp :  float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
+  external modfp : float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
   val ( % ) : float -> float -> float
 end = struct
-  external modfp :  float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
+  external modfp : float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
   let ( % ) = modfp
 end
 ```
@@ -52,11 +52,11 @@ binding, like so:
 
 ```ocaml
 module Float : sig
-  external modfp :  float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
-  external ( % ) :  float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
+  external modfp : float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
+  external ( % ) : float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
 end = struct
-  external modfp :  float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
-  external ( % ) :  float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
+  external modfp : float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
+  external ( % ) : float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
 end
 ```
 
@@ -69,10 +69,10 @@ primitive without syntactic overhead:
 
 ```ocaml
 module Float : sig
-  external modfp :  float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
+  external modfp : float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
   external ( % ) = modfp
 end = struct
-  external modfp :  float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
+  external modfp : float -> float -> float = "modfp" "modfp_unboxed" [@@unboxed]
   external ( % ) = modfp
 end
 ```
