@@ -32,7 +32,7 @@ signatures, though this can be overcome with sufficient inlining.
 ## Motivation
 
 It's often useful to simply re-bind a value (e.g. with a different name), but there is
-currently no way to do re-bind a _primitive_ without wrapping it in an OCaml value and
+currently no way to re-bind a _primitive_ without wrapping it in an OCaml value and
 destroying any additional information. Consider a module such as:
 
 ```ocaml
