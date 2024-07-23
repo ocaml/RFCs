@@ -37,11 +37,9 @@ these structures, too.
 
 ## Discussion
 
-* This disambiguation does *not* extend to lists, though there is no technical
-reason it can't. The reason, instead, is one of taste: a list has a very
-different performance profile from an array, and it goes against the grain of
-OCaml to have this significant difference tucked away invisibly, resolved by
-type inference.
+* This disambiguation does *not* extend to lists: list literals are just syntax
+for nested calls to `(::)` and `[]`, which can be disambiguated through the
+usual mechanisms for constructors.
 
 * This allows us to add new array-like structures without worrying about
   concrete syntax.
@@ -49,6 +47,15 @@ type inference.
 * The `[| ... |]` syntax behaves very much like a constructor, available both in
   expressions and in patterns. Extending type-directed disambiguation in this
   way seems like a natural step.
+  
+* This disambiguation does *not* extend to array access operators `.()` and
+  `.()<-`. The former is currently an abbreviation for `Array.get` (whichever
+  `Array.get` is in scope) and the latter is an abbreviation for `Array.set`
+  (whichever `Array.set` is in scope). In addition, the language already
+  supports binding new array-access operators, with (mostly) arbitrary symbols
+  between the `.` and the brackets. These existing mechanisms serve well to
+  control the meaning of access operators, and thus this RFC does not add to
+  them.
   
 ## Implementation
 
