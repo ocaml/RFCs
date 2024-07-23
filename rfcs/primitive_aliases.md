@@ -101,6 +101,6 @@ end
 ```
 
 That is, one will be permitted to ascribe a new type to the aliased primitive, and 
-criticially the form `external foo : ty = ext` will be acceptable in signatures _even if 
+critically the form `external foo : ty = ext` will be acceptable in signatures _even if 
 `ext` has the wrong type_, with the compatibility check done as usual during module 
 inclusion.
