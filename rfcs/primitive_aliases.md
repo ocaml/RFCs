@@ -85,3 +85,22 @@ primitives via `value_description`, and adding a `Psig_primitive` constructor to
 Typing such aliases seems similarly straightforward: we can simply look up the primitive
 bound to the symbol on the right-hand side in the current environment, recovering all the
 same information as if were written out in full.
+
+### Type annotations
+
+We also intend to support the following form:
+
+```ocaml
+module M : sig
+  type t
+  external int_of_t : t -> int = Fun.id
+end = struct
+  type t = int
+  external int_of_t : t -> int = Fun.id
+end
+```
+
+That is, one will be permitted to ascribe a new type to the aliased primitive, and 
+criticially the form `external foo : ty = ext` will be acceptable in signatures _even if 
+`ext` has the wrong type_, with the compatibility check done as usual during module 
+inclusion.
