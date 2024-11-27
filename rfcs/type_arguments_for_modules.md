@@ -42,34 +42,51 @@ structure attached to it. This is useful when we just want to store the type
 but never look into it. Cases where this pattern occurs exists in the OCaml code
 base.
 
-#### State monad in algebraic effects tutorial
+#### State monad
 
 For example when implementing a state monad such as the
 one in the example available at :
-https://github.com/ocaml-multicore/ocaml-effects-tutorial/blob/998376931b7fdaed5d54cb96b39b301b993ba995/sources/state2.ml#L13-L40.
+https://github.com/RedPRL/redtt/blob/ae76658873a647eb43d8cf84365a9d68e9a3273c/src/basis/StateMonad.ml.
 
 ```ocaml
-module type STATE = sig
-  type t
-  val put     : t -> unit
-  val get     : unit -> t
-  val history : unit -> t list
-  val run : (unit -> unit) -> init:t -> unit
+module type S =
+sig
+  type state
+
+  include Monad.S
+
+  val get : state m
+  val set : state -> unit m
+
+  val run : state -> 'a m -> 'a * state
 end
 
-module State (S : sig type t end) : STATE with type t = S.t = struct
+module M (X : sig type t end) : S with type state := X.t =
+struct
+  type state = X.t
 
-  type t = S.t
+  type 'a m = state -> 'a * state
 
-  type _ Effect.t += Get : t Effect.t
+  let ret a st = a, st
 
-  let get () = perform Get
+  let bind m k st =
+    let a, st' = m st in
+    k a st'
 
-  let put v = failwith "not implemented"
+  let try_ m kerr st =
+    try
+      m st
+    with exn ->
+      kerr exn st
 
-  let history () = failwith "not implemented"
+  let get st =
+    st, st
 
-  let run f ~init = failwith "not implemented"
+  let set st _ =
+    (), st
+
+  let run st m =
+    m st
 end
 ```
 
@@ -132,24 +149,40 @@ as arguments in modules paths.
 
 ## Semantic change
 
-This feature does not change the semantic, it is just adds conciseness.
+This feature has a slightly different semantic from usual functors. The idea is
+to match the non-blocking `(type a)` from the core language.
 
-The reason behind this is that all module expression using type arguments could
-be rewritten to a module expression using a module wrapping the type.
+Thus when defining `module M = functor (type a) -> S[a]`, `S` is directly
+computed and `M(type t)` will not launch any computation and allocation.
 
-For example :
+However in order to preserve the type soundness of the OCaml language a
+restriction needs to be applied : we use value restriction on `S`. Thus if `S` is
+a structure :
+- it cannot contain an expansive expressions (such as `ref None`),
+- it cannot define an extensive type or extend an existing one,
+- it cannot define an exception,
+- it cannot define an object.
+
+The first restriction could be reduced to weak value restriction instead of weak
+value restriction if required without impacting soundness.
+
+In order to lift those restriction the user can still write his functors using
+a module containing only a single field that defines a type.
+
+
+Those restrictions comes from the fact that as `F(type _)` does not do any
+computation in the example bellow, `r1` and `r2` are the same reference but have
+incompatible types.
 
 ```ocaml
-1:    module F (type a) = BODY [a]
-2:    F (type p)
+module F (type a) = struct
+    let r : a option ref = ref None
+end
+
+let r1 = let module M = F(type int) in M.r
+let r2 = let module M = F(type float) in M.r
 ```
 
-could be encoded as the following.
-
-```ocaml
-1:    module F (A : Type)  = BODY [A.t]
-2:    F (struct type t = p end)
-```
 
 ## Important restrictions
 
@@ -180,31 +213,10 @@ between path comparison and type unification.
 
 For example, `M(type <m: int>).t` should be rejected.
 
-### Type application must be compiled as an empty structure
-
-If we could avoid giving the type arguments at runtime for modules like with
-functions we would have soundness issues.
-
-The following example show why it is important to preserve the information of
-application all the way to binary code.
-
-```ocaml
-module F (type a) = struct
-    let r : a option ref = ref None
-end
-
-let r1 = let module M = F(type int) in M.r
-let r2 = let module M = F(type float) in M.r
-```
-
-If `F(type _)` does not launch any computation then `r1` and `r2` will be the
-same reference but with incompatible types.
-
-Side note : for safety reason the functor above should have been generative.
-
 ## Possible extensions
 
 This feature could be extended with other similar patterns to be a bit more expressive.
 
 - Implement the same feature with module types,
+- Replace value restriction in type-parametrized modules to weak value restriction.
 - Allow using parametric types in paths (for example `M(type int list).t`).
