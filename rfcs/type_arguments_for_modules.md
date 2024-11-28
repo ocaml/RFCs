@@ -159,8 +159,8 @@ However in order to preserve the type soundness of the OCaml language a
 restriction needs to be applied : we use value restriction on `S`. Thus if `S` is
 a structure :
 - it cannot contain an expansive expressions (such as `ref None`),
-- it cannot define an extensive type or extend an existing one,
-- it cannot define an exception,
+- it cannot extend an existing extensible type (but not defining one),
+- it cannot define a new exception (but not rebinding an exception),
 - it cannot define an object.
 
 The first restriction could be reduced to weak value restriction instead of weak
