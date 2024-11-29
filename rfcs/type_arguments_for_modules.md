@@ -161,6 +161,7 @@ a structure :
 - it cannot contain an expansive expressions (such as `ref None`),
 - it cannot extend an existing extensible type (but not defining one),
 - it cannot define a new exception (but not rebinding an exception),
+- it cannot contain a functor application to a module (could be reduced by allowing applications of pure functors),
 - it cannot define an object.
 
 The first restriction could be reduced to weak value restriction instead of weak
