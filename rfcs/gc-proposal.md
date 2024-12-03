@@ -69,8 +69,8 @@ Cost:
 
 - more ?
 
-Reference counter for greyval
------------------------------
+Reference counter for rememebered set 
+-------------------------------------
 
 The title is almost self sufficient: why not add in each block in the minor
 heap a reference counter that count the number of references from the major
@@ -78,7 +78,7 @@ heap or from a block that is too old in the minor heap ?
 
 Benefit:
 
-- This replace adding and removing from the greyval list by incrementing and
+- This replace adding and removing from the remembered set by incrementing and
   decrementing a counter in the minor heap. This seems much less costly with
   domains ?
 
