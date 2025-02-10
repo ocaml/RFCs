@@ -26,7 +26,12 @@ Changes that are not necessarily within the scope of the committee include:
 
 * Changes to compiler flags
 
-It is possible that the OCaml maintainers seek the opinion of the committee on these points, but it is generally not expected.
+It is possible that the OCaml maintainers seek the opinion of the
+committee on these points, but it is generally not expected. (Compiler
+flags are part of the interface to the compiler, but one used mostly
+by other tools that are part of the OCaml ecosystem; those authors
+will likely have a more nuanced opinion of this part of the compiler's
+interface than members of the committee.)
 
 ### How to submit a question for consideration by the committee
 
