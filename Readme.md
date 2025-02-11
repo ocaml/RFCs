@@ -34,12 +34,25 @@ The OCaml development team will moderate these discussions. We may
 delete comments or close pull requests that we feel are not
 productive.
 
+## Reaching a decision
+
 ## Merging an RFC
 
-Once those involved in discussing an RFC think that it is ready to be
-considered for approval they can nominate it for consideration at the
-next developers meeting. At that meeting a decision will be made to
-either:
+If debate on the RFC converges on clear consensus, the RFC can be
+merged.
+
+If a consensus of OCaml maintainers is elusive (including perhaps the
+case where an RFC does not attract enough attention), you can request
+review from the [OCaml Language Committee](Committee.md). The linked
+page describes the committee workings; if you want its attention, you
+should tag its chair, currently @Octachron. The committee will then
+make a recommendation about inclusion of this feature in the language,
+though it has no formal power to make a final decision. At that point,
+it can either be merged (if there is clear willingness to do so) or
+sent to the next developers' meeting.
+
+Regardless of whether the committee has driven the decision or the
+discussion at the developers' meeting has, a decision will be to either:
 
 - Accept the proposal and merge the RFC
 
