@@ -35,6 +35,8 @@ end
 These two code fragments behave identically, except that in the first case the
 module `M` won't have a submodule `T`.
 
+### `include functor` in signatures
+
 The feature can also be used in signatures:
 
 ```ocaml
@@ -73,6 +75,38 @@ module type S = sig
   include functor module type of Comparable.Make
 end
 ```
+
+The signature version of `include functor` is more surprising than its
+counterpart in structures because the language does not otherwise have a
+signature-level equivalent of functor application. That is, OCaml has functor
+types like:
+```ocaml
+module type FT = functor (X : S) -> S'
+```
+But given an abstract `FT` the language has no way to ask for the signature that
+would result from applying it to a module `M`. In other words, it lacks
+a signature-level functor type application form like `FT(M)` that would yield
+`S'[M/X]` (with appropriate stengthening). If such a form existed, then our
+example above could be rewritten:
+```ocaml
+module type S = sig
+  module T : sig
+    type t
+    [@@deriving compare, sexp]
+  end
+
+  include F(T)
+end
+```
+
+While this form is slightly novel for OCaml, it makes sense when `include
+functor` is viewed as a lightweight "mixin" mechanism for the module system. In
+settings with mixins/inheritence, it's standard to have some notion of mixin
+type that is used both to classify the things you can inherit and also to create
+signatures for modules/classes constructed using inheritance. In OCaml with
+`include functor`, the types of the mixins are jsut functor types, and so the
+thing used to create signatures for modules constructed using mixins should also
+be functor types.
 
 ## Use cases
 
