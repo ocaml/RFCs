@@ -325,7 +325,7 @@ We identify the following options:
 
 * Terminology: *static/dynamic*, *absent/present*, *namespace/runtime*
 * Syntax:
-  * token for transparent ascription: "`:>`", "`>`", "`<:`", "`<`", "`:~`"
+  * token for transparent ascription: "`:>`", "`>`", "`<:`", "`<`", "`:~`", "`::`"
   * for dynamic aliases: `(= P)`, `(= P :> _)`
   * for transparent signatures: `(= P :> S)`, `(P :> S)`, `(= P, S)`
 * Inference of static aliases: the criterion for inference of absent aliases
