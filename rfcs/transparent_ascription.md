@@ -172,10 +172,22 @@ List of some relevant discussions (PRs and issues):
 
 List of relevant papers (chronological order):
 
-* [Type-level module aliases: independent and equal](https://www.math.nagoya-u.ac.jp/~garrigue/papers/modalias.pdf)
-* [F-ing modules](https://dl.acm.org/doi/abs/10.1145/1708016.1708028)
-* [Fulfilling OCaml Modules with Transparency](https://dl.acm.org/doi/abs/10.1145/3649818)
-* [Avoiding Signature Avoidance in ML Modules with Zippers](https://dl.acm.org/doi/10.1145/3704902)
+* [Type-level module aliases: independent and equal](https://www.math.nagoya-u.ac.jp/~garrigue/papers/modalias.pdf) - description of the feature in OCaml
+* [F-ing modfules](https://dl.acm.org/doi/abs/10.1145/1708016.1708028) - Section
+  8.2 presents identity sharing of modules
+* [Fulfilling OCaml Modules with
+  Transparency](https://dl.acm.org/doi/abs/10.1145/3649818) - Section 2.4
+  presents the soundness issue with aliases and functor calls, and present
+  transparent signatures.
+* [Avoiding Signature Avoidance in ML Modules with
+  Zippers](https://dl.acm.org/doi/10.1145/3704902) - While the paper focuses on
+  avoidance, the type system supports transparent signatures and applicative
+  functors. Section 1.1.4 and 3.2 explain how transparent signatures can be used
+  for delayed strengthening.
+* [Retrofitting and strengthening the ML module system (Blaudeau's PhD
+  thesis)](https://clement.blaudeau.net/assets/pdf/thesis.pdf) - see sections
+  2.2.3 and 2.2.4 for an high level introduction of module aliasing; see section
+  4.2 for the key intuition behind module identities.
 
 # 2. High-level summary of the change
 
