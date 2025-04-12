@@ -14,12 +14,13 @@ organized as follows.
 
 # 1. Context
 
-In the following, we use the following terminology:
+In the following, we use the following conventions:
 
-* "*signatures*" for the types of modules, including `sig ... end`, `functor ()
+* "*module expressions*", written `M`, for the module language
+* "*signatures*", written `S`, for the types of modules, including `sig ... end`, `functor ()
   -> S`, `functor (Y:S) -> S` and named module types.
-* "*declarations*" for fields of signatures (inside `sig ... end`)
-* "*binding*" for fields of structures (inside `struct ... end`)
+* "*declarations*", written `D`, for fields of signatures (inside `sig ... end`)
+* "*binding*", written `B`, for fields of structures (inside `struct ... end`)
 
 ## 1.a. Aliasing
 
@@ -48,14 +49,27 @@ patterns.
 
 ## 1.b. Presence
 
-In addition, the module system supports stores a `presence` flag (`Mp_present`,
-`Mp_absent`) on module fields of signatures to indicate if the field is actually
-present at runtime or not. Absent fields must be aliases, but not all aliases
-are absent. This flag is not accessible to the user, but inferred by the
-typechecker.
+In addition, the module system infers a `presence` flag (`Mp_present`,
+`Mp_absent`) on module declarations to indicate if the field is actually present
+at runtime or not. The invariant is the following : absent fields *must be*
+aliases, but not all aliases are absent. This flag is not accessible to the
+user, but inferred by the typechecker, which tries to make aliases absent as
+much as possible.
 
 The `-no-alias-deps` flag instructs the compiler to not link modules that are
-referred as absent aliases, when the alias is not accessed.
+referred as absent aliases, when the alias is not accessed in the rest of the
+file. For instance, in the following:
+
+```ocaml
+(* top.ml compiled with -no-alias-deps *)
+module L = LongModuleName1
+module M = LongModuleName2
+type t = M.t
+```
+
+Here, `LongModuleName1` will not get linked, as it is just aliased but not
+accessed. By contrast, `LongModuleName2` will get linked, as it accessed (when
+doing `M.t`).
 
 ## 1.c Transparent ascription / Module identity
 
@@ -75,45 +89,77 @@ We say that `X` has the *identity* `P` and the *associated signature*
 can support functor parameters, functor applications or recursive modules, and
 are stable through substitutions.
 
-Moreover, *present* aliases can be seen as a special case or transparent
-signatures:
+Aliasing can be seen as a special case of transparent signatures, where the path
+is associated with its own signature:
 
 ```ocaml
-module X : (= P :> module type of P)
+module X : (= P :> module type of P) (* similar to (= P) *)
 ```
 
-The signature annotation can be omitted, when its known to be the same as the
-signature of `P`. Note that substituting a functor parameter by a path during
-functor application might break this invariant and require to re-expose the
-signature.
+As an optimization (and a way to make signatures more concise), the associated
+signature can be omitted. Note that substituting a functor parameter by a path
+during functor application might break this invariant and require to re-expose
+the signature.
 
 ### Transparent ascription in module expressions
 
-Finally, transparent signatures are the visible result in types of *transparent
-ascription* expressions, a form of ascription where all type equalities are
-preserved, as in:
+Transparent signatures are linked with the module expression construct of
+*transparent ascription*, written `M :> S`. It is a form of ascription where all
+type equalities (including module identities) are preserved, as in:
 
 ```ocaml
+module type T = sig type t end
+
 (* opaque *)
-module X = (struct type t = int type u = bool end : sig type t end)
-(* -> *) module X : sig type t end
+module Opaque = (struct type t = int end : T)
+(* module Opaque : sig type t end *)
 
-  (* transparent *)
-module X = (struct type t = int type u = bool end :> sig type t end)
-(* -> *) module X : sig type t = int end
+(* transparent *)
+module Transparent = (struct type t = int end :> T)
+(* module Transparent : sig type t = int end *)
 ```
 
-It is already implemented in SML (with the reverse syntax!), although it does
-not have the same consequences on the type system, as SML does not have
-applicative functors. It is not present in OCaml, but can be obtained with a
-normal (opaque) ascription where all the type sharing has been made explicit in
-the signature (which is cumbersome in practice):
+With transparent ascription of paths `P :> S`, we get module identities are also
+persevered :
 
 ```ocaml
-(* opaque, but with annotations *)
-module X = (struct type t = int type u = bool end : sig type t end with type t = int)
-(* -> *) module X : sig type t = int end
+module X = struct type t = int end
+
+(* opaque *)
+module X_opaque = (X : T)
+(* module X_opaque : sig type t end *)
+module X_transparent = (X :> T)
+(* module X_transparent : (= X :> T) *)
 ```
+
+It is already implemented in Coq/Rocq and SML (with the reverse syntax!),
+although it does not have the same consequences on the type system (SML does not
+have applicative functors, and Coq/Rocq does not use module identities).
+
+Transparent ascription is technically not present in OCaml, but can be somewhat
+simulated in two ways :
+
+1. using a normal (opaque) ascription where all the type sharing has been made
+   explicit in the signature (which can quickly become cumbersome):
+
+   ```ocaml
+   module X_transparent = (X : T with type t = int) (* module X : sig type t = int end *)
+   ```
+
+2. using a functor call, where avoidance is used to preserve type equalities:
+
+   ```ocaml
+   module X = (functor (Y:T) -> Y)(X) (* module X : sig type t = int end *)
+   ```
+
+   However, equalities between abstract types and module identities can be lost
+   using this technique:
+
+   ```ocaml
+   module X' = (functor (Y:T) -> Y)(struct type t type u = t end);;
+   (* module X' : sig type t type u end *)
+   (* loss of type sharing ! *)
+   ```
 
 ## 1.d Resources
 
@@ -214,7 +260,8 @@ ending in 4) is the following:
 
 ## 3.c Semantic model of transparent signatures
 
-The transparent signature `(=P<S)` is just compiled as `S`. Therefore, when two
+
+The transparent signature `(= P :> S)` is just compiled as `S`. Therefore, when two
 modules share the same identity, it only means that the modules come from a
 coercion of the same module definition, but not necessarily the same *instance*
 (if the definition contains functor applications).
@@ -224,8 +271,8 @@ In particular, consider the following code:
 ```ocaml
 module F (_:sig end) = struct let x = ref (Random.int 10) end
 module X0 = struct end
-module X1 = F(X0)
-module X2 = F(X0)
+module X1 = F(X0) (* module X1 : (= F(X0)) *)
+module X2 = F(X0) (* module X1 : (= F(X0)) *)
 ```
 
 Even though `X1` and `X2` have the same identity, `X1.x` and `X2.x` might be
