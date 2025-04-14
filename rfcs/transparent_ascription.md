@@ -247,7 +247,13 @@ taken into account. The proposed planning for the transition (starting in 1 and
 ending in 4) is the following:
 
 1. Introduce attributes `static_alias`, `dynamic_alias` that can be safely
-   ignored by previous versions of the compiler.
+   ignored by previous versions of the compiler:
+   ```ocaml
+   module X_static = Y [@static_alias]
+   module X_dynamic = Y [@dynamic_alias]
+   ```
+   Attributes can be used both in bindings and declarations (in `.ml` and `.mli`)
+
 
 2. Introduce new syntax (syntax options are discussed in Section 4):
 
