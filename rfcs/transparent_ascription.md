@@ -270,15 +270,23 @@ ending in 4) is the following:
 
    In other cases, infer a dynamic alias.
 
-## 3.c Semantic model of transparent signatures
+## 3.c Properties of transparent signatures
 
+In this subsection, we clarify some wrong intuitions regarding the semantic
+model: what does it really implies for a module to be an alias of another.  We
+consider a situation where the typechecker returns :
 
-The transparent signature `(= P :> S)` is just compiled as `S`. Therefore, when two
-modules share the same identity, it only means that the modules come from a
-coercion of the same module definition, but not necessarily the same *instance*
-(if the definition contains functor applications).
+```ocaml
+module X1 : (= P :> S1)
+module X2 : (= P :> S2)
+```
 
-In particular, consider the following code:
+Here, `X1` and `X2` share the same identity, which means that they come from
+coercions of the same definition `P`. The type fields that they have in common
+(say `X1.t` and `X2.t`) will always be deemed equal by the typechecker. However,
+this intuition does not extend to value fields. If `P` contains (applicative)
+functor applications, `X1` and `X2` might not come from the same *instance*! If
+the applicative functor is impure, as in:
 
 ```ocaml
 module F (_:sig end) = struct let x = ref (Random.int 10) end
@@ -287,9 +295,11 @@ module X1 = F(X0) (* module X1 : (= F(X0)) *)
 module X2 = F(X0) (* module X1 : (= F(X0)) *)
 ```
 
-Even though `X1` and `X2` have the same identity, `X1.x` and `X2.x` might be
-different, and it should not be surprising. It's the user responsibility to use
-generative functors for impure code. However, in the following:
+Then, even though `X1` and `X2` have the same identity, `X1.x` and `X2.x` might
+be different. We stress that this behavior is not a bug of transparent
+signatures, but rather a consequence of the missing tracking of effects in
+applicative functors. Currently, it's the user responsibility to use generative
+functors for impure code. By contrast, in the following:
 
 ```ocaml
 module X0 = struct let x = ref(Random.int 10) end
