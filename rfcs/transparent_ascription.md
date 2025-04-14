@@ -97,9 +97,23 @@ module X : (= P :> module type of P) (* similar to (= P) *)
 ```
 
 As an optimization (and a way to make signatures more concise), the associated
-signature can be omitted. Note that substituting a functor parameter by a path
+signature can be omitted, as in `(= P :> _)`, when its known to be exactly
+`module type of P`.
+
+However, it's worth noting that substituting a functor parameter by a path
 during functor application might break this invariant and require to re-expose
-the signature.
+the signature:
+
+```ocaml
+module type S = sig type t end
+module F(Y:S) = Y (* functor (Y:S1) -> (= Y :> _) *)
+module X0 = struct type t = int type u = bool end (* ... *)
+module X1 = F(X0) (* (= Y :> S) *)
+```
+
+Here, the signature of `X1` is not the same as `X0` and therefore, it must be
+made explicit.
+
 
 ### Transparent ascription in module expressions
 
@@ -253,7 +267,6 @@ ending in 4) is the following:
    module X_dynamic = Y [@dynamic_alias]
    ```
    Attributes can be used both in bindings and declarations (in `.ml` and `.mli`)
-
 
 2. Introduce new syntax (syntax options are discussed in Section 4):
 
