@@ -54,7 +54,23 @@ In addition, the module system infers a `presence` flag (`Mp_present`,
 at runtime or not. The invariant is the following : absent fields *must be*
 aliases, but not all aliases are absent. This flag is not accessible to the
 user, but inferred by the typechecker, which tries to make aliases absent as
-much as possible. For all practical purposes, currently, all aliases are absent.
+much as possible.
+
+### Present aliases
+
+For all practical purposes, currently, most aliases are absent. User-written
+aliases will always be absent. However, strengthening can make aliases present,
+as in :
+
+```ocaml
+module M  = struct module X = struct end end (* sig module X : sig end end *)
+
+(* present alias inferred ! *)
+module N  = struct include M end (* sig module X = M.X end (present) *)
+
+(* absent alias inferred ! *)
+module N' = struct module X = M.X end (* sig module X = M.X end (absent) *)
+```
 
 ### No linking of absent aliases
 
