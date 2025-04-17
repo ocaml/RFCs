@@ -58,19 +58,29 @@ much as possible.
 
 ### Present aliases
 
-For all practical purposes, currently, most aliases are absent. User-written
-aliases will always be absent. However, strengthening can make aliases present,
-as in :
+Currently, most aliases are absent. User-written aliases will always be
+absent. However, strengthening and avoidance can make aliases present :
 
-```ocaml
-module M  = struct module X = struct end end (* sig module X : sig end end *)
+1. Using strengthening:
 
-(* present alias inferred ! *)
-module N  = struct include M end (* sig module X = M.X end (present) *)
+   ```ocaml
+   module M  = struct module X = struct end end (* sig module X : sig end end *)
 
-(* absent alias inferred ! *)
-module N' = struct module X = M.X end (* sig module X = M.X end (absent) *)
-```
+   (* present alias inferred ! *)
+   module N  = struct include M end (* sig module X = M.X end (present) *)
+
+   (* absent alias inferred ! *)
+   module N' = struct module X = M.X end (* sig module X = M.X end (absent) *)
+   ```
+2. Using avoidance:
+
+   ```ocaml
+   module X0 = struct end
+   module N = struct
+     open (struct module X1 = X0 end)
+     module X = X1
+   end (* sig module X = X0 end (present) *)
+   ```
 
 ### No linking of absent aliases
 
