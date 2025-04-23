@@ -24,7 +24,7 @@ In the following, we use the following conventions:
 
 ## 1.a. Aliasing
 
-The module system currently offers a notion of *module alias*: bindings of the form:
+The module system currently offers a notion of [*module alias*](https://ocaml.org/manual/5.3/modulealias.html#start-section): bindings of the form:
 
 ```ocaml
 module X = P
@@ -211,6 +211,7 @@ List of some relevant discussions (PRs and issues):
 * [Transparent ascription of modules #10612](https://github.com/ocaml/ocaml/pull/10612)
 * [Use Mp_present for module aliases #10673](https://github.com/ocaml/ocaml/pull/10673)
 * [Disallow aliases of functor arguments in module types #11460](https://github.com/ocaml/ocaml/pull/11460)
+* [Remove positions from paths #1610](https://github.com/ocaml/ocaml/pull/1610)
 
 List of relevant papers (chronological order):
 
@@ -230,6 +231,10 @@ List of relevant papers (chronological order):
   thesis)](https://clement.blaudeau.net/assets/pdf/thesis.pdf) - see sections
   2.2.3 and 2.2.4 for a high-level introduction of module aliasing; see section
   4.2 for the key intuition behind module identities.
+
+Manual:
+
+* [Type-level module aliases](https://ocaml.org/manual/5.3/modulealias.html#start-section)
 
 # 2. High-level summary of the change
 
