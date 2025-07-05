@@ -246,9 +246,7 @@ typechecker. We propose the following changes:
 1. **Feature split**:
    * Split aliases into *static aliases* (absent ones) and *dynamic aliases*
      (present ones) in the internal representation of the typechecker.
-   * Provide attributes (`static_alias`, `dynamic_alias`), as well as a separate
-     syntax for each construction (syntax transition and backward compatibility
-     are detailed below).
+   * Provide attributes (`static_alias`, `dynamic_alias`) for each construction.
    * Do not change yet the "aliasable" criterion, i.e. keep the restriction that
      dynamic aliases cannot contain functor parameter, functor application, etc.
    * Remove the `presence` flag (which would coincide exactly with being a
@@ -262,7 +260,7 @@ typechecker. We propose the following changes:
    * Introduce *transparent signatures* by extending dynamic aliases with an
      optional signature, making dynamic aliases a special case of transparent
      signatures.
-   * Add corresponding syntax.
+   * Introduce new syntax
 
 3. **Feature activation**:
    * Allow transparent signatures of any path (functor parameter, functor
@@ -273,10 +271,11 @@ typechecker. We propose the following changes:
      :> S)` (and `module X :> S = M`).
 
 5. **Depreciation**:
-   * Add a warning for inferred absent aliases (when ambiguous), stating that
-     the special syntax (or attribute) should be used.
-   * During a major version change, depreciate the inference of presence, making
-     `module X = P` (without attribute) always present.
+   * Change the inference of ambiguous aliases to infer static aliases only when
+     a persistent module is aliased in a covariant position. Otherwise, infer
+     dynamic ones. In the former case, emit a warning stating that the special
+     syntax (or attribute) should be used.
+   * Restrict all static aliases to persistent modules paths
 
 # 3. Technical details
 
@@ -296,8 +295,8 @@ ending in 4) is the following:
 1. Introduce attributes `static_alias`, `dynamic_alias` that can be safely
    ignored by previous versions of the compiler:
    ```ocaml
-   module X_static = Y [@static_alias]
-   module X_dynamic = Y [@dynamic_alias]
+   module X_static = Y [@@static_alias]
+   module X_dynamic = Y [@@dynamic_alias]
    ```
    Attributes can be used both in bindings and declarations (in `.ml` and `.mli`)
 
@@ -311,16 +310,19 @@ ending in 4) is the following:
 
 3. For the ambiguous `module X = P` (without attribute), when
 
-   - the `-no-alias-deps` flag is on
-   - the path `P` is statically aliasable
+   - the path `P` is *persistent* (reachable from the top-level) [1]
    - in the strictly positive part (top-level and submodules, not inside functors)
 
-   then, infer a static alias. If the alias is not accessed in the rest of the
-   file (no projection of the form `X.t`), emit a warning stating that an
-   explicit `static_alias` attribute should be added, or that the new syntax
-   `==` should be used.
+   then, infer a static alias, but emit a warning stating that an explicit
+   `static_alias` attribute should be added, or that the new syntax `==` should
+   be used. In other cases, change the inference to infer a dynamic alias.
 
-   In other cases, infer a dynamic alias.
+[1] "Persistent" modules cannot change through substitutions (functor
+applications, signature constraints, etc.) and therefore do not risk being
+scrapped/dropped. This restriction, which makes sense for a name-space
+mechanism, should fix issues such as
+[#13997](https://github.com/ocaml/ocaml/issues/13997). Non persistent modules
+can still be aliased with transparent signatures.
 
 ## 3.c Properties of transparent signatures
 
