@@ -73,17 +73,17 @@ You can reach the committee by email at [`ocaml-language-committee@inria.fr`](ma
 The current members, including their GitHub handle, when they joined first, when their term last renewed, when their term expires and their role, are:
 
 
-|          | Name     | Handle   | Join Date | Renewal Date | Term End |
-| -------- | -------- | -------- | --------- | ------------ | -------- |
-| <img src="https://github.com/Octachron.png?size=80" /> | Florian Angeletti (**chair**)| [@Octachron](https://github.com/Octachron) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/nojb.png?size=80" /> | Nicol&aacute;s Ojeda B&auml;r | [@nojb](https://github.com/nojb) | 2025/01 | 2025/01 | 2028/01 |
+|          | Name     | Handle   | Join Date | Renewal Date | Term End | Affiliation |
+| -------- | -------- | -------- | --------- | ------------ | -------- |-------------|
+| <img src="https://github.com/Octachron.png?size=80" /> | Florian Angeletti (**chair**)| [@Octachron](https://github.com/Octachron) | 2025/01 | 2025/01 | 2028/01 | Inria Paris
+| <img src="https://github.com/nojb.png?size=80" /> | Nicol&aacute;s Ojeda B&auml;r | [@nojb](https://github.com/nojb) | 2025/01 | 2025/01 | 2028/01 | LexiFi
 | <img src="https://github.com/let-def.png?size=80" /> | Fr&eacute;d&eacute;ric Bour | [@let-def](https://github.com/let-def) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/goldfirere.png?size=80" /> | Richard Eisenberg | [@goldfirere](https://github.com/goldfirere) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/andrewjkennedy.png?size=80" /> | Andrew Kennedy | [@andrewjkennedy](https://github.com/andrewjkennedy) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/fpottier.png?size=80" /> | Fran&ccedil;ois Pottier | [@fpottier](https://github.com/fpottier) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/gasche.png?size=80" /> | Gabriel Scherer | [@gasche](https://github.com/gasche) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/lpw25.png?size=80" /> | Leo White | [@lpw25](https://github.com/lpw25) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/yallop.png?size=80" /> | Jeremy Yallop | [@yallop](https://github.com/yallop) | 2025/01 | 2025/01 | 2028/01 |
+| <img src="https://github.com/goldfirere.png?size=80" /> | Richard Eisenberg | [@goldfirere](https://github.com/goldfirere) | 2025/01 | 2025/01 | 2028/01 | Jane Street
+| <img src="https://github.com/andrewjkennedy.png?size=80" /> | Andrew Kennedy | [@andrewjkennedy](https://github.com/andrewjkennedy) | 2025/01 | 2025/01 | 2028/01 | Meta
+| <img src="https://github.com/fpottier.png?size=80" /> | Fran&ccedil;ois Pottier | [@fpottier](https://github.com/fpottier) | 2025/01 | 2025/01 | 2028/01 | Inria Paris
+| <img src="https://github.com/gasche.png?size=80" /> | Gabriel Scherer | [@gasche](https://github.com/gasche) | 2025/01 | 2025/01 | 2028/01 | Inria Paris
+| <img src="https://github.com/lpw25.png?size=80" /> | Leo White | [@lpw25](https://github.com/lpw25) | 2025/01 | 2025/01 | 2028/01 | Jane Street
+| <img src="https://github.com/yallop.png?size=80" /> | Jeremy Yallop | [@yallop](https://github.com/yallop) | 2025/01 | 2025/01 | 2028/01 | University of Cambridge
 
 <!--
 We would also like to thank our former members:
