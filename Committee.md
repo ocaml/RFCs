@@ -43,7 +43,27 @@ After an issue has been tagged for committee attention, the chair chooses a comm
 
 The shepherd's first job is to summarize the question for the committee and make a recommendation of response. Responses need not be "yes" or "no"; sometimes the committee will be asked to choose among several different ideas for syntax, say. The shepherd corresponds with the author until the shepherd understands the issue well enough, and then formulates a summary of this communication and a recommendation. This summary and recommendation are posted to the rest of the committee via the committee's mailing list. The shepherd then sets the label *Under consideration*. This ideally happens within two weeks of the shepherd assignment.
 
-The committee then debates, either via the mailing list or on the GitHub ticket. (The mailing list, though technically public, is a good place for conversations primarily intended to reach other committee members; the GitHub ticket will attract more responses from the wider community.) Hopefully the committee reaches consensus; the shepherd then posts the committee's response back to the author. If the committee is unable to reach consensus, it votes; if there are many options to consider, it may use a ranked voting algorithm, at the discretion of the shepherd. (That is, the shepherd is broadly empowered to choose the most effective approach toward making a decision for the particular issue at hand.) If there is any vote, the shepherd posts the result of the vote, including information about the strength of the win. Because the decision of the committee is non-binding, reflecting the level of committee support in the final answer may be of interest to the broader community in deciding how to proceed. Once the shepherd posts the committee's answer, the issue is no longer under consideration by the committee, and the *Under consideration* label is removed. Ideally this step lasts no more than four weeks.
+The committee then debates, either via the mailing list or on the GitHub ticket.
+(The mailing list, though technically public, is a good place for conversations
+primarily intended to reach other committee members; the GitHub ticket will
+attract more responses from the wider community.). To be as transparent as
+possible, the committee chair lists the known conflicts of interest between the
+committee members and the proponent of the language change under deliberation at
+the start of the deliberation. Hopefully the committee reaches consensus; the
+shepherd then posts the committee's response back to the author. If the
+committee is unable to reach consensus, it votes; if there are many options to
+consider, it may use a ranked voting algorithm, at the discretion of the
+shepherd. (That is, the shepherd is broadly empowered to choose the most
+effective approach toward making a decision for the particular issue at hand.)
+If there is any vote, the shepherd posts the result of the vote, including
+information about the strength of the win. If the shepherd might be in conflict,
+they delegate the report on the committee deliberation to a second
+non-conflicted member of the committee. Because the decision of the committee is
+non-binding, reflecting the level of committee support in the final answer may
+be of interest to the broader community in deciding how to proceed. Once the
+shepherd posts the committee's answer, the issue is no longer under
+consideration by the committee, and the *Under consideration* label is removed.
+Ideally this step lasts no more than four weeks.
 
 ## Who is the committee?
 
@@ -137,3 +157,26 @@ Any member of the committee is free to step down at any time; such a member may 
 
 There is no process for members of the public at large to directly add or remove committee members. (That is, there is no public vote.) Representative voting across the internet is fraught, and the drawbacks to such a system seem to outweigh any benefits. It is expected that a misbehaving committee (say, one that selects only its friends and ignores other nominations) loses legitimacy and is publicly called into question in an attempt to make changes for the better in its operation.
 
+## Conflicts of interest
+
+For the sake of transparency, the committee chair is expected to disclose any
+known potential conflict of interest between committee members and proponents of
+a specific language change at the start of the committee deliberation.
+
+Taking in account the small world nature of the OCaml community, the committee
+considers that transparency is a sufficient measure to avoid unconscious or
+covert influences on the deliberation. Thus conflicted committee members are not
+expected to recuse themselves from the deliberation nor the potential votes.
+
+As a supplementary measure, if a shepherd is in a position of conflict of
+interests, they should delegate the final report on the committee deliberation
+to a non-conflicted committee member.
+
+Currently, the committee classifies at least the following situation as being
+unconditional source of conflict of interests:
+
+A. being in the same institution as the proponents of a language change
+B. on-going or recent contractual or financial ties to the proponent of the language change
+
+Other sources of conflicts of interest should be reported to the committee chair
+at the start of a deliberation at the personal discretion of committee members.
