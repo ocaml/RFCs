@@ -96,7 +96,7 @@ and retro-compatibility would be preserved by having `'a Iter.t` implement `Into
 ```ocaml
 implicit module Iter_into_iter = struct
    type 'a t = ('a -> unit) -> unit
-   val into_iter x = x
+   let into_iter x = x
 end
 ```
 
