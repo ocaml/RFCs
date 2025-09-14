@@ -27,7 +27,7 @@ The OCaml language has nicely evolved in the last few years to allow more impera
 
 ### Proof of concept
 
-While this feature doesn't currently have a proof of concept, a first version of this feature seems light to implement. It requires adding the following construct to the syntax:
+While this feature doesn't currently have a proof of concept, a first version of this feature seems light[^2] to implement. It requires adding the following construct to the syntax:
 ```
 expr += for pattern in expr do expr done
                        ----    ----        
@@ -164,3 +164,4 @@ e >>= fun x ->
 There is also an argument of authority to make in saying that the same feature is widely popular in the other languages mentioned in the introduction, even though they also all have the ability to express it functionally.
 
 [^1]: For lack of creativity in finding a more interesting example
+[^2]: By light, it is meant that the modifications should be similar in size to the [let-operator](https://github.com/ocaml/ocaml/pull/1947/) PR.
