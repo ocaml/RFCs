@@ -143,15 +143,15 @@ Currently, the committee classifies at least the following situations as being
 unconditional sources of conflicts of interest:
 
 1. belonging to the same institution as the proposal submitter
-2. on-going or recent direct financial ties to the proposal submitter
+2. ongoing or recent direct financial ties to the proposal submitter
 
 Any committee member hesitating about a less clear cut case can ask the
 committee secretary for a second opinion.
 
-Committee members in conflict can still participate to the committee discussion,
-however they cannot participate to the decision process. In particular, they
+Committee members in conflict can still participate in the committee discussion,
+but they cannot participate in the decision process. In particular, they
 cannot be a shepherd for the proposal.
 
-Moreover, in order to inform external audience, the chair should mention the
+Moreover, in order to inform the external audience, the chair should mention the
 known conflicts of interest at the start of the committee deliberation.
 
