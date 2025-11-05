@@ -139,8 +139,14 @@ There is no process for members of the public at large to directly add or remove
 
 ## Conflicts of interest
 
-Currently, the committee classifies at least the following situations as being
-unconditional sources of conflicts of interest:
+The committee hopes to reflect the various interests of the OCaml community from
+academia to the various industrial users. Conflicts of interests might introduce
+(often unconscious) biases that might cloud the technical discussion or reduce
+the diversity of point of views.
+
+Thus we expect committee member to disclose such conflicts. Currently, the
+committee classifies at least the following situations as being unconditional
+sources of conflicts of interest:
 
 1. belonging to the same institution as the proposal submitter
 2. ongoing or recent direct financial ties to the proposal submitter
