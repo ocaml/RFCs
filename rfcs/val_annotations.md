@@ -78,9 +78,15 @@ let rev li =
 
 ## Discussion and extensions
 
+The suggestions below are *not* intended for inclusion as part of the
+RFC (they would not be implemented along with what's above), but they
+serve to record and discuss alternative choices, and/or to check
+compatibility with other features by showing that the feature can be
+extended if desired.
+
 ### Locally abstract types in `val` declarations
 
-We propose to extend the form `type a . ...` to work with value
+One can consider extending the form `type a . ...` to work with value
 annotations. For example:
 
 ```ocaml
@@ -94,7 +100,7 @@ let mem elt li =
 
 Notice that `type a` binds the variable `a` in both the declaration and the definition.
 
-(This extension could be left out of a first implementation of this proposal.)
+This extension may not be necessary if [#12732](https://github.com/ocaml/ocaml/pull/12732) is merged. In general there are discussions around the semantics of `type a` vs `'a` that are independent of the present PR. We merely point out that `val` could scale to `type a.` if desired.
 
 
 ### Alternative syntax: declarations within `let` blocks
@@ -128,6 +134,7 @@ let rev li =
   in loop li []
 ```
 
+
 ### Combination with `_` inference from signature
 
 oxcaml has a work-in-progress feature where `_` can be used to elide types and module signatures in structures (in particular `.ml` files), when they are declared in the corresponding signature (in particular the `.mli` file), see https://github.com/oxcaml/oxcaml/pull/2783 . This feature is independent, but it was part of the motivation to revive the current proposal, as it can naturally be combined:
@@ -136,3 +143,47 @@ oxcaml has a work-in-progress feature where `_` can be used to elide types and m
 val map : _
 let rec map f li = ...
 ```
+
+A more compact form specific to toplevel `let` definitions could be
+considered:
+
+```
+val rec map f li = ...
+```
+
+it would both imply `val map : _` as above and could only be included
+once per structure (shadowing `val` declarations with another `val` is
+forbidden.)
+
+
+### Tension with using `val` for forward-declaration
+
+Jeremy Yallop points out that `val` could be considered to introduce recursion, so that
+
+```
+let rec fac n = function
+| 0 -> 1
+| n -> n * fac (n - 1)
+```
+
+could also be written (note the absence of `rec` below)
+
+```
+val fac : int -> int
+let fac n = function
+| 0 -> 1
+| n -> n * fac (n - 1)
+```
+
+That interpretation of `val` is *incompatible* with the one proposed in this PR, as their semantics would differ in the following case:
+
+```
+let fac n = 0 (* first definition *)
+
+val fac : int -> int
+let fac n = function
+| 0 -> 1
+| n -> n * fac (n - 1) (* first definition or recursive occurrence? *)
+```
+
+Leo White proposes to use `val rec` to implicitly introduce recursion, to avoid the incompatibility between the two features. (Gabriel Scherer and Kate Deplaix alternatively proposed to require `let rec` to take `val` forward declarations into account, but Jeremy Yallop was not impressed by this proposal.)
