@@ -53,17 +53,17 @@ You can reach the committee by email at [`ocaml-language-committee@inria.fr`](ma
 The current members, including their GitHub handle, when they joined first, when their term last renewed, when their term expires and their role, are:
 
 
-|          | Name     | Handle   | Join Date | Renewal Date | Term End |
-| -------- | -------- | -------- | --------- | ------------ | -------- |
-| <img src="https://github.com/Octachron.png?size=80" /> | Florian Angeletti (**chair**)| [@Octachron](https://github.com/Octachron) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/nojb.png?size=80" /> | Nicol&aacute;s Ojeda B&auml;r | [@nojb](https://github.com/nojb) | 2025/01 | 2025/01 | 2028/01 |
+|          | Name     | Handle   | Join Date | Renewal Date | Term End | Affiliation |
+| -------- | -------- | -------- | --------- | ------------ | -------- |-------------|
+| <img src="https://github.com/Octachron.png?size=80" /> | Florian Angeletti (**chair**)| [@Octachron](https://github.com/Octachron) | 2025/01 | 2025/01 | 2028/01 | Inria Paris
+| <img src="https://github.com/nojb.png?size=80" /> | Nicol&aacute;s Ojeda B&auml;r | [@nojb](https://github.com/nojb) | 2025/01 | 2025/01 | 2028/01 | LexiFi
 | <img src="https://github.com/let-def.png?size=80" /> | Fr&eacute;d&eacute;ric Bour | [@let-def](https://github.com/let-def) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/goldfirere.png?size=80" /> | Richard Eisenberg | [@goldfirere](https://github.com/goldfirere) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/andrewjkennedy.png?size=80" /> | Andrew Kennedy | [@andrewjkennedy](https://github.com/andrewjkennedy) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/fpottier.png?size=80" /> | Fran&ccedil;ois Pottier | [@fpottier](https://github.com/fpottier) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/gasche.png?size=80" /> | Gabriel Scherer | [@gasche](https://github.com/gasche) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/lpw25.png?size=80" /> | Leo White | [@lpw25](https://github.com/lpw25) | 2025/01 | 2025/01 | 2028/01 |
-| <img src="https://github.com/yallop.png?size=80" /> | Jeremy Yallop | [@yallop](https://github.com/yallop) | 2025/01 | 2025/01 | 2028/01 |
+| <img src="https://github.com/goldfirere.png?size=80" /> | Richard Eisenberg | [@goldfirere](https://github.com/goldfirere) | 2025/01 | 2025/01 | 2028/01 | Jane Street
+| <img src="https://github.com/andrewjkennedy.png?size=80" /> | Andrew Kennedy | [@andrewjkennedy](https://github.com/andrewjkennedy) | 2025/01 | 2025/01 | 2028/01 | Meta
+| <img src="https://github.com/fpottier.png?size=80" /> | Fran&ccedil;ois Pottier | [@fpottier](https://github.com/fpottier) | 2025/01 | 2025/01 | 2028/01 | Inria Paris
+| <img src="https://github.com/gasche.png?size=80" /> | Gabriel Scherer | [@gasche](https://github.com/gasche) | 2025/01 | 2025/01 | 2028/01 | Inria Paris
+| <img src="https://github.com/lpw25.png?size=80" /> | Leo White | [@lpw25](https://github.com/lpw25) | 2025/01 | 2025/01 | 2028/01 | Jane Street
+| <img src="https://github.com/yallop.png?size=80" /> | Jeremy Yallop | [@yallop](https://github.com/yallop) | 2025/01 | 2025/01 | 2028/01 | University of Cambridge
 
 <!--
 We would also like to thank our former members:
@@ -136,4 +136,27 @@ The nomination and voting process is kept private, by using direct email to comm
 Any member of the committee is free to step down at any time; such a member may choose to leave the committee immediately or to wait until the end of a nominating process (which would be triggered only when the number of members is about to drop below 9).
 
 There is no process for members of the public at large to directly add or remove committee members. (That is, there is no public vote.) Representative voting across the internet is fraught, and the drawbacks to such a system seem to outweigh any benefits. It is expected that a misbehaving committee (say, one that selects only its friends and ignores other nominations) loses legitimacy and is publicly called into question in an attempt to make changes for the better in its operation.
+
+## Conflicts of interest
+
+The committee hopes to reflect the various interests of the OCaml community from
+academia to the various industrial users. Conflicts of interest might introduce
+biases that cloud technical judgement.
+
+Thus we expect committee member to disclose such conflicts. Currently, the
+committee classifies at least the following situations as being unconditional
+sources of conflicts of interest:
+
+1. belonging to the same institution as the proposal submitter
+2. ongoing or recent direct financial ties to the proposal submitter
+
+Any committee member hesitating about a less clear cut case can ask the
+committee secretary for a second opinion.
+
+Committee members in conflict can still participate in the committee discussion,
+but they cannot participate in the decision process. In particular, they
+cannot be a shepherd for the proposal.
+
+Moreover, in order to inform the external audience, the chair should mention the
+known conflicts of interest at the start of the committee deliberation.
 
