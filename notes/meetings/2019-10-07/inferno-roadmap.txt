@@ -1,0 +1,127 @@
+An Inferno roadmap (also known as "the high road").
+I will also commit a version of this to the Inferno repository.
+-- FP
+
+### Universal quantification in constraints
+
+### Type annotations
+
+This includes "scoped type variables", that is, the ability (or necessity?)
+to explicitly bind type variables.
+
+It should be possible to bind a type variable either existentially or universally.
+
+As a side product, we get the ability of comparing an inferred type
+with a declared type.
+
+### Algebraic data types and pattern-matching
+
+### GADTs
+
+Need to reason under local equations between types.
+Need to detect ambivalent types.
+In the presence of modules and abstract types,
+  need a notion of "compatibility" (an approximation of equality).
+
+### Type abbreviations
+
+Toplevel or local?
+Recursive?
+The subject of Carine Morel's recent internship.
+
+### Principality, sharing
+
+Understand how type information is shared internally and is propagated.
+Related to GADTs, first-class polymorphism, type abbreviations.
+
+### Propagation of type information (synchronization)
+
+Can it be viewed as a preprocessing step?
+Can it be performed at the same time as constraint generation?
+Do we need new forms of constraints?
+  (somehow allowing feedback from constraint resolution
+   into constraint generation)
+What is the role of type annotations in this setting?
+
+### Overloading of data constructors and field labels
+
+See Gabriel's proposal:
+  http://gallium.inria.fr/~scherer/topics/delayed-constraints-for-disambiguation.txt
+Related to implicit arguments.
+Related to name resolution.
+Related to synchronization.
+
+### Name resolution
+
+Make it easier for tools (smart editor, refactoring tool)
+  to understand the binding structure of the code.
+
+### First-class polymorphism
+
+For records and objects. Do we want to redesign this feature?
+  Can we avoid the syntactic overhead of boxing them in a record?
+
+### Rows
+
+With applications to objects and polymorphic variants and effects.
+  (Currently, objects and variants use local constraints.)
+
+### Core language subtyping
+
+Implicit, explicit, what form?
+  Are coercions erased? (yes)
+Related to rows.
+
+Implicit (pervasive) subtyping would require bi-unification (Stephen's algorithm).
+
+### Value restriction
+
+The relaxed value restriction, based on variance.
+Also, see Jacques's more recent proposal?
+
+### Basic support for linear types, regions, borrows
+
+Based on recent work by Gabriel Radanne and Peter Thiemann.
+
+### Type error reports
+
+Can we produce error reports that are minimal in a certain sense?
+  What is the algorithmic cost?
+
+Can we report multiple errors?
+
+### Incrementality, type-inferencer API
+
+Can we support incremental type inference?
+Can we avoid global state in the implementation?
+  or avoid side effects altogether?
+Should we expose an abstract type of type-inferencer states?
+Recomputing as little as possible when the source code changes.
+
+The "toplevel" (REPL) interface. The debugger.
+  How do they interact with the type-checker?
+
+### Modules
+
+Including first-class modules.
+Should the module language and the core language be separate?
+
+### Implicit arguments
+
+### Labeled and optional arguments
+
+Needs a form of multi-application.
+Related to synchronization (propagation).
+
+### Classes
+
+What kind of support does this require in Inferno?
+
+### Kinds
+
+Do we need some kind of support for kinds?
+How would it impact the solver's API?
+Type application in the syntax of kinds?
+  How are equations between type applications solved?
+Subkinding?
+Should type variables and type constructors be a single category?
